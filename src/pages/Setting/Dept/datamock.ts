@@ -13,46 +13,5 @@ export const dataSource = [
     typeName: '黄',
     sellAuth: '14567364435',
   },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
-  {
-    key: 'caption1',
-    caption: '测试2',
-    marketId: '黄家驹',
-    typeName: '黄',
-    sellAuth: '14567364435',
-  },
+
 ];
