@@ -44,6 +44,7 @@ const BreadCrumb: React.FC = () => {
   // TODO 面包屑下拉菜单
   const items = pathSnippets.map((_, index) => {
     const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
+
     let menu = undefined;
     if (breadcrumbNameMap[url]?.routes) {
       const items = breadcrumbNameMap[url].routes?.map((r) => {

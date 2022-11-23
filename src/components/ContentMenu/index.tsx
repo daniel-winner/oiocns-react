@@ -114,6 +114,7 @@ const ContentMenu: React.FC<RouteComponentProps & ContentMenuProps> = (props) =>
   };
   /**点击submenu  一定有children*/
   const handleChange: MenuProps[`onOpenChange`] = (paths) => {
+    debugger;
     const current = menuFlat.find((n) => n.key === paths[0]);
 
     if (current!.children!.length > 0) {
@@ -143,6 +144,7 @@ const ContentMenu: React.FC<RouteComponentProps & ContentMenuProps> = (props) =>
             <LeftOutlined
               className={cls.backicon}
               onClick={() => {
+                debugger;
                 if (prevMenuData.length > 0) {
                   setSelectId('');
                   setCurrentMenuData(prevMenuData[prevMenuData.length - 1]);

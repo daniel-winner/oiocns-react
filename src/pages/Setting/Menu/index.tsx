@@ -7,6 +7,7 @@ import {
   InfoCircleOutlined,
   SettingOutlined,
   SmileOutlined,
+  IdcardOutlined,
 } from '@ant-design/icons';
 import { Menu } from 'antd';
 import React from 'react';
@@ -26,6 +27,7 @@ const SettingMenu: React.FC = () => {
     { label: '单位信息', key: 'info', icon: <InfoCircleOutlined /> },
     { label: '部门设置', key: 'dept', icon: <ApartmentOutlined /> },
     { label: '集团设置', key: 'group', icon: <FundOutlined /> },
+    { label: '岗位设置', key: 'job', icon: <IdcardOutlined /> },
     { label: '帮助中心', key: 'help', icon: <SmileOutlined /> },
   ];
   /* 自定义设置菜单 */

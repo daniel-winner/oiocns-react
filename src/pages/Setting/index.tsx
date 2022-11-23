@@ -17,6 +17,7 @@ import {
   InfoCircleOutlined,
   SettingOutlined,
   SmileOutlined,
+  IdcardOutlined,
 } from '@ant-design/icons';
 import BreadCrumb from '@/components/BreadCrumb';
 import ContentTemplate from '@/components/ContentTemplate';
@@ -25,7 +26,6 @@ import TreeLeftDeptPage from '@/bizcomponents/TreeLeftDeptPage';
 import TreeLeftGroupPage from '@/bizcomponents/TreeLeftGroupPage';
 
 import { MenuProps } from 'antd';
-
 
 /* 信息中心菜单 */
 const infoMenuItems = [
@@ -44,6 +44,7 @@ const infoMenuItems = [
     children: [],
     render: <TreeLeftGroupPage />,
   },
+  { label: '岗位设置', key: 'job', icon: <IdcardOutlined /> },
   { label: '帮助中心', key: 'help', icon: <SmileOutlined /> },
 ];
 /* 自定义设置菜单 */
@@ -70,12 +71,9 @@ const muneItems: MenuProps[`items`] = [
 ];
 
 const Setting: React.FC<{ route: IRouteConfig; history: any }> = ({ route, history }) => {
- 
-
   const toNext = (e: any) => {
     history.push(`${e.key}`);
   };
-
   return (
     <ContentTemplate
       siderMenuData={muneItems}
