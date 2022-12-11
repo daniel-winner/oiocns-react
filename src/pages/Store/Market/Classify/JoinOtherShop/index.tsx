@@ -49,25 +49,16 @@ const JoinOtherShop: React.FC<Iprops> = ({
       dataIndex: 'name',
     },
     {
-      title: '商店编码',
-      dataIndex: 'code',
-      width: 100,
-    },
-    {
-      title: '商店归属',
-      dataIndex: 'belongId',
-    },
-    {
-      title: '商店创建',
-      dataIndex: 'createUser',
-    },
-    {
       title: '商店简介',
       dataIndex: 'remark',
       ellipsis: true,
       render: (remark: string, _record: any) => (
         <Tooltip autoAdjustOverflow={true}>{remark}</Tooltip>
       ),
+    },
+    {
+      title: '商店归属',
+      dataIndex: 'belongId',
     },
   ];
 
@@ -105,6 +96,7 @@ const JoinOtherShop: React.FC<Iprops> = ({
     <CardOrTable
       dataSource={dataSource ?? []}
       rowKey="id"
+      width={width ? width - 200 : 700}
       showChangeBtn={false}
       hideOperation={true}
       columns={columns as any}

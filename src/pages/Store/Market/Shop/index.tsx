@@ -19,16 +19,18 @@ const Index: React.FC = () => {
   }, []);
 
   return (
-    <>
-      <AppShowComp
-        headerTitle={marketCtrl.getCurrentMarket()?.market.name || '共享仓库'}
-        className={cls['market-public-wrap']}
-        list={data}
-        total={total}
-        columns={marketCtrl.getColumns('market')}
-        queryFun={marketCtrl.getStoreProduct}
-      />
-    </>
+    marketCtrl.getCurrentMarket() && (
+      <>
+        <AppShowComp
+          headerTitle={marketCtrl.getCurrentMarket()?.market.name || '共享仓库'}
+          className={cls['market-public-wrap']}
+          list={data}
+          total={total}
+          columns={marketCtrl.getColumns('market')}
+          queryFun={marketCtrl.getStoreProduct}
+        />
+      </>
+    )
   );
 };
 
