@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Thing from './Thing';
-import ThingCard from './Card';
-import ThingHistory from './History';
+import ThingView from './View';
 import { ISpeciesItem } from '@/ts/core';
 
 interface IProps {
@@ -32,9 +31,7 @@ const ThingIndex: React.FC<IProps> = ({ species, selectable, checkedList }) => {
         />
       );
     case 1:
-      return <ThingCard thingId={thingId} setTabKey={setTabKey} />;
-    case 2:
-      return <ThingHistory thingId={thingId} setTabKey={setTabKey} />;
+      return <ThingView thingId={thingId} setTabKey={setTabKey} />;
     default:
       return <></>;
   }

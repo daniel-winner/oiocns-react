@@ -17,9 +17,10 @@ export const loadSpeciesTree = async (id: string) => {
     },
   });
   if (res.success) {
-    item = new SpeciesItem(res.data, undefined);
+    item = new SpeciesItem(res.data, undefined, id);
   }
   return item;
 };
 
 export type { INullSpeciesItem, ISpeciesItem } from './ispecies';
+export type { IFlowDefine } from './iflowDefine';

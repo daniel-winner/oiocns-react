@@ -1,5 +1,7 @@
 import { IIdentity } from './iidentity';
 import { model, schema } from '@/ts/base';
+import { PageRequest } from '@/ts/base/model';
+import { XTarget, XTargetArray } from '@/ts/base/schema';
 
 export interface IAuthority {
   /** 权限Id */
@@ -62,4 +64,10 @@ export interface IAuthority {
    * @returns
    */
   queryAuthorityIdentity(reload: boolean): Promise<IIdentity[]>;
+  /**
+   * 查询指定权限下的人员列表
+   *  @param reload 是否强制刷新
+   * @returns
+   */
+  queryAuthorityPerson(page: PageRequest): Promise<model.ResultType<schema.XTargetArray>>;
 }

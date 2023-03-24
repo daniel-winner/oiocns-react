@@ -4,6 +4,8 @@ import userCtrl from '@/ts/controller/setting';
 import { XOrderDetail } from '@/ts/base/schema';
 import { ProColumns } from '@ant-design/pro-table';
 import { IApplyItem, IApprovalItem, IOrderApplyItem } from '@/ts/core';
+import thingCtrl from '@/ts/controller/thing';
+import { schema } from '@/ts/base';
 
 export const WorkColumns: ProColumns<{ Data: any }>[] = [
   {
@@ -46,7 +48,7 @@ export const OrgColumns = [
     title: '说明',
     dataIndex: ['Data', 'remark'],
     render: (_: any, row: any) => {
-      if (row as IApplyItem) {
+      if ((row as IApplyItem).cancel) {
         return '请求添加' + row.Data?.team?.name + '为好友';
       } else {
         return row.Data?.target?.name + '请求添加好友';
@@ -408,7 +410,7 @@ export const ApplicationApplyColumns: ProColumns<IApplyItem>[] = [
   { title: '创建时间', dataIndex: ['Data', 'createTime'], valueType: 'dateTime' },
 ];
 
-export const WorkReocrdColumns: ProColumns[] = [
+export const WorkReocrdColumns: ProColumns<schema.XFlowRecord>[] = [
   {
     title: '序号',
     dataIndex: 'index',
@@ -420,14 +422,8 @@ export const WorkReocrdColumns: ProColumns[] = [
     dataIndex: ['historyTask', 'instance', 'title'],
   },
   {
-    title: '审批人',
-    dataIndex: 'createUser',
-    render: (_, record) => {
-      const team = userCtrl.findTeamInfoById(record.createUser);
-      if (team) {
-        return team.name;
-      }
-    },
+    title: '类型',
+    dataIndex: ['historyTask', 'node', 'nodeType'],
   },
   {
     title: '审批时间',
@@ -443,6 +439,9 @@ export const WorkReocrdColumns: ProColumns[] = [
     dataIndex: 'status',
     render: (_, record) => {
       const status = statusMap[record.status];
+      if (record.historyTask.node?.nodeType == '抄送') {
+        return <Tag color={status.color}>已阅</Tag>;
+      }
       return <Tag color={status.color}>{status.text}</Tag>;
     },
   },
@@ -480,6 +479,16 @@ export const WorkTodoColumns: ProColumns[] = [
     dataIndex: 'index',
     valueType: 'index',
     width: 60,
+  },
+  {
+    title: '类别',
+    dataIndex: ['instance', 'define', 'speciesId'],
+    render: (_, record) => {
+      return (
+        thingCtrl.speciesList.find((a) => a.id == record.instance?.define?.speciesId)
+          ?.name ?? '未知'
+      );
+    },
   },
   {
     title: '事项',

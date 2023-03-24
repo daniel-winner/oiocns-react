@@ -3,6 +3,7 @@ import { IAuthority } from './iauthority';
 import { AuthorityType } from '../../enum';
 import consts from '@/ts/core/consts';
 import Identity from './identity';
+import { PageRequest } from '@/ts/base/model';
 
 export default class Authority implements IAuthority {
   private _belongId: string;
@@ -176,5 +177,14 @@ export default class Authority implements IAuthority {
       });
     }
     return this.identitys;
+  }
+  public async queryAuthorityPerson(
+    page: PageRequest,
+  ): Promise<model.ResultType<schema.XTargetArray>> {
+    return await kernel.queryPersonByAuthority({
+      id: this._authority.id,
+      spaceId: this.id,
+      page: page,
+    });
   }
 }

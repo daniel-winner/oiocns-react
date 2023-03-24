@@ -5,6 +5,7 @@ import React, { useState, useEffect, Key } from 'react';
 import { ISpeciesItem, ITarget } from '@/ts/core';
 import CustomTree from '@/components/CustomTreeComp';
 import { ImTree } from 'react-icons/im';
+import thingCtrl from '@/ts/controller/thing';
 interface Iprops {
   open: boolean;
   close: Function;
@@ -67,54 +68,13 @@ const SearchSpecies = (props: Iprops) => {
       item: species,
       name: species.name,
       icon: <ImTree />,
-      // menus: loadSpeciesMenus(species),
       children: species.children?.map((i) => buildSpeciesTree(i)) ?? [],
     };
     return result;
   };
 
-  // const buildDictTree = (dicts: IDict[]) => {
-  //   const result: any[] = dicts.map((item: IDict) => {
-  //     return {
-  //       id: item.id,
-  //       item: item,
-  //       name: item.name,
-  //       isLeaf: true,
-  //       icon: <ImTree />,
-  //     };
-  //   });
-  //   return result;
-  // };
-
-  // const createDictFromSpeciesItem = (from: ISpeciesItem) => {
-  //   from
-  //     ?.createDict({
-  //       name: from.name,
-  //       code: from.target.code,
-  //       public: true,
-  //       belongId: userCtrl.space.id,
-  //       speciesId: currentSpeciesItem.id,
-  //       remark: '',
-  //     })
-  //     .then((dict: INullDict) => {
-  //       if (dict) {
-  //         from.children?.forEach((child) => {
-  //           dict.createItem({
-  //             name: child.name,
-  //             value: child.target.code,
-  //             public: true,
-  //             belongId: userCtrl.space.id,
-  //           });
-  //         });
-  //         message.success('转化成功');
-  //       } else {
-  //         message.error('转化失败');
-  //       }
-  //     });
-  // };
-
   const onLoadSpeciesData = async () => {
-    const species = await currentCompany.loadSpeciesTree();
+    const species = await thingCtrl.loadSpeciesTree();
     if (species) {
       setLeftTreeData([buildSpeciesTree(species)]);
     }
@@ -131,7 +91,6 @@ const SearchSpecies = (props: Iprops) => {
           ok(selectItem);
         }}
         onCancel={() => {
-          // setOpen(false);
           close();
         }}>
         <div style={{ display: 'flex' }}>

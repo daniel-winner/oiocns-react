@@ -316,6 +316,20 @@ export default class KernelApi {
     });
   }
   /**
+   * 创建物
+   * @param {model.ThingModel} params 请求参数
+   * @returns {model.ResultType<schema.XThing>} 请求结果
+   */
+  public async perfectThing(
+    params: model.ThingModel,
+  ): Promise<model.ResultType<boolean>> {
+    return await this.request({
+      module: 'thing',
+      action: 'PerfectThing',
+      params: params,
+    });
+  }
+  /**
    * 删除类别
    * @param {model.IdReqModel} params 请求参数
    * @returns {model.ResultType<boolean>} 请求结果
@@ -1235,6 +1249,20 @@ export default class KernelApi {
     return await this.request({
       module: 'target',
       action: 'QueryTargetsByAuthority',
+      params: params,
+    });
+  }
+  /**
+   * 查询拥有该角色的人员
+   * @param {model.IdSpaceReq} params 请求参数
+   * @returns {model.ResultType<schema.XTargetArray>} 请求结果
+   */
+  public async queryPersonByAuthority(
+    params: model.IdSpaceReq,
+  ): Promise<model.ResultType<schema.XTargetArray>> {
+    return await this.request({
+      module: 'target',
+      action: 'QueryPersonByAuthority',
       params: params,
     });
   }
@@ -2342,11 +2370,11 @@ export default class KernelApi {
   /**
    * 查询审批记录
    * @param {model.IdSpaceReq} params 请求参数
-   * @returns {model.ResultType<schema.XFlowTaskHistoryArray>} 请求结果
+   * @returns {model.ResultType<schema.XFlowRecordArray>} 请求结果
    */
   public async queryRecord(
     params: model.IdSpaceReq,
-  ): Promise<model.ResultType<schema.XFlowTaskHistoryArray>> {
+  ): Promise<model.ResultType<schema.XFlowRecordArray>> {
     return await this.request({
       module: 'flow',
       action: 'QueryRecord',

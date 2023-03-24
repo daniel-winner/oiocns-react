@@ -41,11 +41,11 @@ export default class StoreHub implements IDisposable {
     this._connection.serverTimeoutInMilliseconds = timeout;
     this._connection.keepAliveIntervalInMilliseconds = interval;
     this._connection.onclose((err) => {
-      if (this._isStarted && err) {
+      if (!this.isConnected) {
         this._disconnectedCallbacks.forEach((c) => {
           c.apply(this, [err]);
         });
-        logger.warn(`连接断开,${this._timeout}ms后重试。` + err.message);
+        logger.warn(`连接断开,${this._timeout}ms后重试。` + err ? err!.message : '');
         setTimeout(() => {
           this._starting();
         }, this._timeout);
@@ -97,6 +97,9 @@ export default class StoreHub implements IDisposable {
    * @returns {void} 无返回值
    */
   private _starting(): void {
+    if (this.isConnected) {
+      this._connection.stop();
+    }
     this._connection
       .start()
       .then(() => {

@@ -1,11 +1,10 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Input, Radio, RadioChangeEvent, Tree, TreeProps } from 'antd';
+import { Input, TreeProps } from 'antd';
 import React, { useState, useEffect, Key } from 'react';
 import ShareShowComp from '@/bizcomponents/IndentityManage/ShareShowComp';
 import cls from './index.module.less';
 import CustomTree from '@/components/CustomTreeComp';
 import thingCtrl from '@/ts/controller/thing';
-import { kernel } from '@/ts/base';
 import userCtrl from '@/ts/controller/setting';
 let originalSelected: any[] = []; //存储当前选择 以获分配数据
 interface IProps {
@@ -23,20 +22,11 @@ const SelectOperation: React.FC<IProps> = ({ showData, setShowData }) => {
   const onSelect: TreeProps['onSelect'] = async (selectedKeys, info: any) => {
     setLeftTreeSelectedKeys(selectedKeys);
     const species: any = info.node.item;
-    let res = (
-      await kernel.querySpeciesOperation({
-        id: species.id,
-        spaceId: userCtrl.space.id,
-        filterAuth: false,
-        recursionOrg: true,
-        recursionSpecies: true,
-        page: {
-          offset: 0,
-          limit: 1000,
-          filter: '',
-        },
-      })
-    ).data;
+    let res = await species.loadOperations(userCtrl.space.id, false, true, true, {
+      offset: 0,
+      limit: 1000,
+      filter: '',
+    });
     setCenterTreeData(buildSpeciesChildrenTree(res.result || []));
   };
   // 左侧树选中事件
@@ -58,6 +48,7 @@ const SelectOperation: React.FC<IProps> = ({ showData, setShowData }) => {
       id: info.node.item.id,
       name: info.node.item.name,
       type: 'has',
+      item: info.node.item,
     };
 
     let newShowData = [...newArr];

@@ -4,10 +4,11 @@ import { Input, message, Modal, TreeProps } from 'antd';
 import React, { useState, useEffect, Key } from 'react';
 import cls from './index.module.less';
 import userCtrl from '@/ts/controller/setting';
-import { INullSpeciesItem, ISpeciesItem, loadSpeciesTree } from '@/ts/core';
+import { INullSpeciesItem, ISpeciesItem } from '@/ts/core';
 import CustomTree from '@/components/CustomTreeComp';
 import { ImTree } from 'react-icons/im';
 import { IDict } from '@/ts/core/thing/idict';
+import thingCtrl from '@/ts/controller/thing';
 interface Iprops {
   open: boolean;
   setOpen: Function;
@@ -85,12 +86,8 @@ const TransToSpecies = (props: Iprops) => {
   // };
 
   const createSpeciesItemFromDict = async (root: ISpeciesItem) => {
-    let dictItemsResult = await dict.loadItems(userCtrl.space.id, {
-      offset: 0,
-      limit: 1000,
-      filter: '',
-    });
-    let dictItems = dictItemsResult.result;
+    let dictItemsResult = await dict.loadItems();
+    let dictItems = dictItemsResult;
     dictItems?.forEach((item) => {
       root
         .create({
@@ -112,7 +109,7 @@ const TransToSpecies = (props: Iprops) => {
   };
 
   const onLoadSpeciesData = async () => {
-    const species = await loadSpeciesTree(userCtrl.space.id);
+    const species = await thingCtrl.loadSpeciesTree();
     if (species) {
       setLeftTreeData([buildSpeciesTree(species)]);
     }

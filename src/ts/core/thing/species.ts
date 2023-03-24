@@ -1,4 +1,10 @@
-import { XDict, XFlowDefine } from '@/ts/base/schema';
+import {
+  XAttribute,
+  XAttributeArray,
+  XDict,
+  XFlowDefine,
+  XFlowInstance,
+} from '@/ts/base/schema';
 import { kernel, model, parseAvatar, schema } from '../../base';
 import {
   AttributeModel,
@@ -12,6 +18,8 @@ import {
 import { Dict } from './dict';
 import { IDict, INullDict } from './idict';
 import { INullSpeciesItem, ISpeciesItem } from './ispecies';
+import { FlowDefine } from './flowDefine';
+import { IFlowDefine } from './iflowDefine';
 /**
  * 分类系统项实现
  */
@@ -23,26 +31,51 @@ export class SpeciesItem implements ISpeciesItem {
   parent: INullSpeciesItem;
   children: ISpeciesItem[];
   belongInfo: TargetShare;
-  constructor(target: schema.XSpecies, parent: INullSpeciesItem) {
+  curSpaceId: string;
+  attrs?: XAttribute[];
+  defines?: IFlowDefine[];
+  // instances?: XFlowInstance[];
+  dicts?: IDict[];
+
+  constructor(target: schema.XSpecies, parent: INullSpeciesItem, curSpaceId: string) {
     this.children = [];
     this.target = target;
     this.parent = parent;
     this.id = target.id;
     this.name = target.name;
     this.isRoot = parent === undefined;
+    this.curSpaceId = curSpaceId;
     if (target.nodes && target.nodes.length > 0) {
       for (const item of target.nodes) {
-        this.children.push(new SpeciesItem(item, this));
+        this.children.push(new SpeciesItem(item, this, curSpaceId));
       }
     }
     this.belongInfo = { name: '奥集能平台', typeName: '平台' };
   }
-  async loadAttrs(
+  async loadAttrs(reload: boolean = false): Promise<XAttribute[]> {
+    if (this.attrs == undefined || this.attrs.length == 0 || reload) {
+      const res = await kernel.querySpeciesAttrs({
+        id: this.id,
+        spaceId: this.curSpaceId,
+        recursionOrg: true,
+        recursionSpecies: true,
+        page: {
+          offset: 0,
+          limit: 100000,
+          filter: '',
+        },
+      });
+      this.attrs = res.data.result || [];
+    }
+    return this.attrs;
+  }
+
+  async loadAttrsByPage(
     id: string,
     recursionOrg: boolean,
     recursionSpecies: boolean,
     page: PageRequest,
-  ): Promise<schema.XAttributeArray> {
+  ): Promise<XAttributeArray> {
     const res = await kernel.querySpeciesAttrs({
       id: this.id,
       spaceId: id,
@@ -57,27 +90,28 @@ export class SpeciesItem implements ISpeciesItem {
     return res.data;
   }
 
-  async loadDicts(
-    id: string,
-    recursionOrg: boolean,
-    recursionSpecies: boolean,
-    page: PageRequest,
-  ): Promise<schema.XDictArray> {
-    const res = await kernel.querySpeciesDict({
-      id: this.id,
-      spaceId: id,
-      recursionOrg: recursionOrg,
-      recursionSpecies: recursionSpecies,
-      page: {
-        offset: page.offset,
-        limit: page.limit,
-        filter: '',
-      },
-    });
-    return res.data;
+  async loadDicts(reload: boolean = false): Promise<IDict[]> {
+    if (this.dicts == undefined || this.dicts.length == 0 || reload) {
+      const res = await kernel.querySpeciesDict({
+        id: this.id,
+        spaceId: this.curSpaceId,
+        recursionOrg: true,
+        recursionSpecies: true,
+        page: {
+          offset: 0,
+          limit: 1000,
+          filter: '',
+        },
+      });
+      this.dicts =
+        res.data.result?.map((item: XDict) => {
+          return new Dict(item, this.curSpaceId);
+        }) || [];
+    }
+    return this.dicts || [];
   }
 
-  async loadDictsEntity(
+  async loadDictsByPage(
     spaceId: string,
     recursionOrg: boolean,
     recursionSpecies: boolean,
@@ -96,7 +130,7 @@ export class SpeciesItem implements ISpeciesItem {
     });
     return (
       res.data.result?.map((item: XDict) => {
-        return new Dict(item);
+        return new Dict(item, this.curSpaceId);
       }) || []
     );
   }
@@ -123,7 +157,29 @@ export class SpeciesItem implements ISpeciesItem {
     return res.data;
   }
 
-  async loadFlowDefines(id: string, page: PageRequest): Promise<schema.XFlowDefineArray> {
+  async loadFlowDefines(reload: boolean = false): Promise<IFlowDefine[]> {
+    if (this.defines == undefined || this.defines.length == 0 || reload) {
+      const res = await kernel.queryDefine({
+        speciesId: this.target.id,
+        spaceId: this.curSpaceId,
+        page: {
+          offset: 0,
+          limit: 1000,
+          filter: '',
+        },
+      });
+      this.defines =
+        res.data.result?.map((item: XFlowDefine) => {
+          return new FlowDefine(item, this.curSpaceId);
+        }) || [];
+    }
+    return this.defines;
+  }
+
+  async loadFlowDefinesByPage(
+    id: string,
+    page: PageRequest,
+  ): Promise<schema.XFlowDefineArray> {
     const res = await kernel.queryDefine({
       speciesId: this.target.id,
       spaceId: id,
@@ -134,6 +190,15 @@ export class SpeciesItem implements ISpeciesItem {
       },
     });
     return res.data;
+  }
+
+  async loadFlowInstances(): Promise<XFlowInstance[]> {
+    let res = await kernel.queryInstance({
+      speciesId: this.id,
+      spaceId: this.curSpaceId,
+      page: { offset: 0, limit: 1000, filter: '' },
+    });
+    return res.data.result || [];
   }
 
   async loadInfo(info: TargetShare): Promise<ISpeciesItem> {
@@ -160,7 +225,7 @@ export class SpeciesItem implements ISpeciesItem {
       id: undefined,
     });
     if (res.success) {
-      const newItem = new SpeciesItem(res.data, this);
+      const newItem = new SpeciesItem(res.data, this, this.curSpaceId);
       this.children.push(newItem);
       return newItem;
     }
@@ -174,7 +239,10 @@ export class SpeciesItem implements ISpeciesItem {
       speciesId: this.id,
     });
     if (res.success) {
-      const newItem = new Dict(res.data);
+      const newItem = new Dict(res.data, this.curSpaceId);
+      if (this.dicts) {
+        this.dicts.push(newItem);
+      }
       return newItem;
     }
     return;
@@ -184,6 +252,25 @@ export class SpeciesItem implements ISpeciesItem {
     const res = await kernel.updateDict({
       ...data,
     });
+    if (this.dicts && res.success) {
+      this.dicts = this.dicts.map((item: any) => {
+        if (item.id == res.data.id) {
+          return new Dict(res.data, this.curSpaceId);
+        }
+        return item;
+      });
+    }
+    return res.success;
+  }
+
+  async deleteDict(id: string): Promise<boolean> {
+    const res = await kernel.deleteDict({
+      id: id,
+      typeName: '',
+    });
+    if (this.dicts && res.success) {
+      this.dicts = this.dicts.filter((item: any) => item.id != id);
+    }
     return res.success;
   }
 
@@ -226,6 +313,11 @@ export class SpeciesItem implements ISpeciesItem {
       speciesCode: this.target.code,
       ...data,
     });
+    if (res.success) {
+      if (this.attrs) {
+        this.attrs.push(res.data);
+      }
+    }
     return res.success;
   }
   async updateAttr(
@@ -236,6 +328,14 @@ export class SpeciesItem implements ISpeciesItem {
       speciesId: this.target.id,
       speciesCode: this.target.code,
     });
+    if (this.attrs && res.success) {
+      this.attrs = this.attrs.map((item: any) => {
+        if (item.id == res.data.id) {
+          return res.data;
+        }
+        return item;
+      });
+    }
     return res.success;
   }
   async deleteAttr(id: string): Promise<boolean> {
@@ -243,6 +343,9 @@ export class SpeciesItem implements ISpeciesItem {
       id: id,
       typeName: '',
     });
+    if (this.attrs && res.success) {
+      this.attrs = this.attrs.filter((item: any) => item.id != id);
+    }
     return res.success;
   }
 
@@ -272,30 +375,40 @@ export class SpeciesItem implements ISpeciesItem {
     return res.success;
   }
 
-  async deleteDict(id: string): Promise<boolean> {
-    const res = await kernel.deleteDict({
-      id: id,
-      typeName: '',
-    });
-    return res.success;
-  }
-
   async createFlowDefine(
     data: Omit<CreateDefineReq, 'id' | 'speciesId'>,
   ): Promise<XFlowDefine> {
     const res = await kernel.publishDefine({ ...data, speciesId: this.id });
+    if (res.success) {
+      const newItem = new FlowDefine(res.data, this.curSpaceId);
+      if (this.defines) {
+        this.defines.push(newItem);
+      }
+    }
     return res.data;
   }
 
+  //错误返回
   async updateFlowDefine(data: CreateDefineReq): Promise<boolean> {
     const res = await kernel.publishDefine({
       ...data,
     });
+    if (res.success && this.defines) {
+      this.defines = this.defines.map((item: any) => {
+        if (item.id == res.data.id) {
+          return new FlowDefine(res.data, this.curSpaceId);
+        }
+        return item;
+      });
+    }
     return res.success;
   }
 
   async deleteFlowDefine(id: string): Promise<boolean> {
     const res = await kernel.deleteDefine({ id });
+    if (this.defines && res.success) {
+      this.defines = this.defines.filter((item: any) => item.id != id);
+    }
     return res.success;
   }
 }

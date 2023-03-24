@@ -1,5 +1,6 @@
-import { DictItemModel, PageRequest, DictModel, TargetShare } from '../../base/model';
-import { XDict, XDictItem, XDictItemArray } from '../../base/schema';
+import { schema } from '@/ts/base';
+import { DictItemModel, PageRequest, TargetShare } from '../../base/model';
+import { XDict, XDictItem } from '../../base/schema';
 
 /** 可为空的字典 */
 export type INullDict = IDict | undefined;
@@ -27,17 +28,9 @@ export interface IDict {
   /** 加载信息 */
   loadInfo(info: TargetShare): Promise<IDict>;
   /** 加载字典子项 */
-  loadItems(spaceId: string, page: PageRequest): Promise<XDictItemArray>;
-  /**
-   * 创建字典
-   * @param data 创建参数
-   */
-  create(data: Omit<DictModel, 'id' | 'parentId'>): Promise<INullDict>;
-  /**
-   * 更新字典
-   * @param data 创建参数
-   */
-  update(data: Omit<DictModel, 'id' | 'parentId' | 'code'>): Promise<IDict>;
+  loadItems(reload?: boolean): Promise<XDictItem[]>;
+  /** 查询字典子项 */
+  loadItemsByPage(spaceId: string, page: PageRequest): Promise<schema.XDictItemArray>;
   /**
    * 创建字典子项
    * @param data 创建参数
@@ -53,8 +46,4 @@ export interface IDict {
    * @param id 子项id
    */
   deleteItem(id: string): Promise<boolean>;
-  /**
-   * 删除字典
-   */
-  delete(): Promise<boolean>;
 }

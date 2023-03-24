@@ -4,6 +4,8 @@ import IndentityManage from '@/bizcomponents/IndentityManage';
 import cls from './index.module.less';
 import { NodeType } from '../../processType';
 import userCtrl from '@/ts/controller/setting';
+import ShareShowComp from '@/bizcomponents/IndentityManage/ShareShowComp';
+
 interface IProps {
   current: NodeType;
   orgId?: string;
@@ -19,7 +21,14 @@ const CcNode: React.FC<IProps> = (props) => {
     data: { id: string; name: string };
     title: string;
     key: string;
-  }>({ title: '', key: '', data: { id: '', name: '' } });
+  }>({
+    title: props.current.props.assignedUser[0]?.name,
+    key: props.current.props.assignedUser[0]?.id,
+    data: {
+      id: props.current.props.assignedUser[0]?.id,
+      name: props.current.props.assignedUser[0]?.name,
+    },
+  });
   const [nodeOperateOrgId, setNodeOperateOrgId] = useState<string>(
     props.current.belongId || props.orgId || userCtrl.space.id,
   );
@@ -45,9 +54,19 @@ const CcNode: React.FC<IProps> = (props) => {
         </div>
         <div>
           {currentData?.title ? (
-            <span>
-              当前选择：<a>{currentData?.title}</a>
-            </span>
+            // <span>
+            //   当前选择：<a>{currentData?.title}</a>
+            // </span>
+            <ShareShowComp
+              departData={[currentData.data]}
+              deleteFuc={(id: string) => {
+                props.current.props.assignedUser = { id: '', name: '' };
+                setCurrentData({
+                  title: '',
+                  key: '',
+                  data: { id: '', name: '' },
+                });
+              }}></ShareShowComp>
           ) : null}
         </div>
       </div>

@@ -28,7 +28,7 @@ import SpeciesTreeModal from './SpeciesTreeModal';
 import { ISpeciesItem } from '@/ts/core';
 import { XOperation, XOperationItem } from '@/ts/base/schema';
 import { OperationItemModel, OperationModel } from '@/ts/base/model';
-import OioForm from '../render';
+import OioForm from '../../../../components/Form';
 
 /**
  * 组件选择
@@ -248,7 +248,7 @@ const transformAttrToOperationItem = (
         title: attr.name,
         type,
         widget,
-        required: false,
+        required: true,
         readOnly: false,
         hidden: attr.code === 'thingId',
         placeholder: `请输入${attr.name}`,
@@ -328,11 +328,7 @@ const Design: React.FC<DesignProps> = ({
         page: { offset: 0, limit: 100000, filter: '' },
       });
       // 查询特性
-      const attrRes = await current.loadAttrs(belongId, true, true, {
-        offset: 0,
-        limit: 100000,
-        filter: '',
-      });
+      const attrRes = await current.loadAttrs(false);
       let operateItems = operateItemRes.data?.result || [];
       operateItems = operateItems.map((item: any) => {
         if (item.containSpecies && item.containSpecies.length > 0) {
@@ -340,7 +336,7 @@ const Design: React.FC<DesignProps> = ({
         }
         return item;
       });
-      let attrs: any[] = attrRes.result || [];
+      let attrs: any[] = attrRes;
       const attrIds = operateItems.map((item) => item.attrId);
       items['operationItems'] = operateItems;
       // 过滤出特性
@@ -443,19 +439,27 @@ const Design: React.FC<DesignProps> = ({
           const operationItem = items['operationItems'].find(
             (oi: any) => oi.id === active.id,
           );
+          const operationItems = items['operationItems'].filter((item: any) => {
+            return item.id !== active.id;
+          });
           const data = {
             attrs: [...items['attrs'], transformOperationItemToAttr(operationItem)],
-            operationItems: items['operationItems'].filter((item: any) => {
-              return item.id !== active.id;
-            }),
+            operationItems,
           };
           setOperationModel({
             ...operation,
-            ...{ items: data['operationItems'] },
+            ...{ items: operationItems },
           });
           setItems(data);
-          itemClick(operationItem);
+          if (operationItems.length > 0) {
+            itemClick(operationItems[0]);
+          }
         }
+      } else {
+        setOperationModel({
+          ...operation,
+          ...{ items: items['operationItems'] },
+        });
       }
     } else if (activeContainer == overContainer) {
       // 相同容器
@@ -470,13 +474,17 @@ const Design: React.FC<DesignProps> = ({
       if (overContainer == 'operationItems') {
         itemClick(activeItems.find((item: any) => item.id === activeId));
       }
+      setOperationModel({
+        ...operation,
+        ...{ items: items['operationItems'] },
+      });
     } else {
       itemClick(activeItems.find((item: any) => item.id === activeId));
+      setOperationModel({
+        ...operation,
+        ...{ items: items['operationItems'] },
+      });
     }
-    setOperationModel({
-      ...operation,
-      ...{ items: items['operationItems'] },
-    });
   };
 
   // 表单项选中事件
@@ -689,7 +697,7 @@ const Design: React.FC<DesignProps> = ({
                     <Select options={widgetsOpts} />
                   </Form.Item>
                   <Form.Item label="必填" name="required">
-                    <Radio.Group buttonStyle="solid">
+                    <Radio.Group buttonStyle="solid" defaultValue={true}>
                       <Radio.Button value={true}>是</Radio.Button>
                       <Radio.Button value={false}>否</Radio.Button>
                     </Radio.Group>
@@ -753,6 +761,7 @@ const Design: React.FC<DesignProps> = ({
         <OioForm
           operation={operation}
           operationItems={items['operationItems']}
+          formRef={undefined}
           onValuesChange={(values) => console.log('values', values)}
         />
       </Modal>

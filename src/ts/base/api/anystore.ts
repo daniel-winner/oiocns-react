@@ -309,6 +309,21 @@ export default class AnyStore {
     return await this._restRequest('Thing', 'Load', options, {});
   }
   /**
+   * 加载物的归档信息
+   * @param  过滤参数
+   * @returns {ResultType<T>} 移除异步结果
+   */
+  public async loadThingArchives<T>(
+    options: any,
+    domain: string,
+  ): Promise<ResultType<T>> {
+    if (this._storeHub.isConnected) {
+      return await this._storeHub.invoke('LoadArchives', options, domain);
+    }
+    options.shareDomain = domain;
+    return await this._restRequest('Thing', 'LoadArchives', options, {});
+  }
+  /**
    * 创建物
    * @param  创建数量
    * @returns {ResultType<T>} 移除异步结果

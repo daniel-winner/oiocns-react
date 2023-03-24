@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SettingOutlined, UserOutlined } from '@ant-design/icons';
-import {
-  Row,
-  Button,
-  Divider,
-  Col,
-  Radio,
-  Space,
-  Form,
-  InputNumber,
-  Modal,
-  message,
-} from 'antd';
+import { Row, Button, Divider, Col, Radio, Space, Form, InputNumber, Modal } from 'antd';
 import IndentitySelect from '@/bizcomponents/IndentityManage';
 import cls from './index.module.less';
 import { NodeType } from '../../processType';

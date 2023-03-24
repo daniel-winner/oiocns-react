@@ -73,10 +73,13 @@ const BannerCom: React.FC<ShortcutsComType> = () => {
       case '创单位':
         setShowFormModal(true);
         break;
-      case '建应用':
-        history.push('/store/app/create');
+      case '邀成员':
         break;
-
+      case '逛商场':
+        history.push('/market/shop');
+        break;
+      case '添数据':
+        break;
       default:
         break;
     }

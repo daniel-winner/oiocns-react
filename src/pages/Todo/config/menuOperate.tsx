@@ -81,27 +81,27 @@ export const loadPlatformApplyMenu = async () => {
       key: WorkType.OrgApply,
       label: '组织',
       itemType: WorkType.OrgApply,
-      icon: <im.ImCart />,
+      icon: <im.ImTree />,
       children: [
         {
           key: WorkType.FriendApply,
           label: '加好友',
           itemType: WorkType.FriendApply,
-          icon: <im.ImCart />,
+          icon: <im.ImTree />,
           children: [],
         },
         {
           key: WorkType.CompanyApply,
           label: '加单位',
           itemType: WorkType.CompanyApply,
-          icon: <im.ImCart />,
+          icon: <im.ImTree />,
           children: [],
         },
         {
           key: WorkType.GroupApply,
           label: '加集团',
           itemType: WorkType.GroupApply,
-          icon: <im.ImCart />,
+          icon: <im.ImTree />,
           children: [],
         },
       ],
@@ -135,7 +135,7 @@ export const loadPlatformApplyMenu = async () => {
       label: '订单',
       item: todoCtrl.OrderTodo,
       itemType: WorkType.OrderApply,
-      icon: <im.ImCart />,
+      icon: <im.ImBarcode />,
       children: [],
     },
   ];
@@ -194,10 +194,6 @@ const buildSpeciesTree = async (
       menuType: isWork ? 'checkbox' : undefined,
       menus: [],
       children: await buildSpeciesTree(item.children, itemType, isWork),
-      count:
-        itemType.indexOf('todo') > -1
-          ? todoCtrl.getWorkTodoBySpeciesId(item.id).length
-          : undefined,
     });
   }
   return result;

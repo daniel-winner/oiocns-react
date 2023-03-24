@@ -1,4 +1,4 @@
-import OioForm from '@/pages/Setting/components/render';
+import OioForm from '@/components/Form';
 import Design from '@/pages/Setting/components/design';
 import React, { useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
@@ -7,7 +7,6 @@ import { OperationModel } from '@/ts/base/model';
 import { Button, Card, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { ImUndo2 } from 'react-icons/im';
-import { getUuid } from '@/utils/tools';
 
 interface IProps {
   selectMenu: MenuItemType;
@@ -135,6 +134,7 @@ const ContentIndex = (props: IProps) => {
             <OioForm
               operation={props.selectMenu.item.design}
               onValuesChange={(values) => console.log('values', values)}
+              formRef={undefined}
             />
           </Card>
         )

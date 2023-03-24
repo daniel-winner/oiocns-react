@@ -1,10 +1,9 @@
-import OioForm from '@/pages/Setting/components/render';
+import OioForm from '@/components/Form';
 import Design from '@/pages/Setting/content/Standard/Flow/Design';
 import Thing from '@/pages/Store/content/Thing/Thing';
 import { kernel } from '@/ts/base';
 import { XFlowDefine, XFlowTaskHistory } from '@/ts/base/schema';
 import userCtrl from '@/ts/controller/setting';
-import storeCtrl from '@/ts/controller/store';
 import thingCtrl from '@/ts/controller/thing';
 import todoCtrl from '@/ts/controller/todo/todoCtrl';
 import { ISpeciesItem } from '@/ts/core';
@@ -20,16 +19,10 @@ const { Panel } = Collapse;
 interface IApproveProps {
   selectMenu: MenuItemType;
   flowTask?: XFlowTaskHistory;
-  setTabKey: (tabKey: number) => void;
-  reflashMenu: () => void;
+  setPageKey: (pageKey: number) => void;
 }
 
-const Approve: React.FC<IApproveProps> = ({
-  selectMenu,
-  flowTask,
-  setTabKey,
-  reflashMenu,
-}) => {
+const Approve: React.FC<IApproveProps> = ({ selectMenu, flowTask, setPageKey }) => {
   const formRef = useRef<ProFormInstance<any>>();
   const [taskHistory, setTaskHistorys] = useState<XFlowTaskHistory[]>([]);
   let comment = '';
@@ -57,7 +50,6 @@ const Approve: React.FC<IApproveProps> = ({
         const instances = res.data.result || [];
         if (instances.length > 0) {
           const species_ = await thingCtrl.loadSpeciesTree();
-          // setRootSpecies(species_);
           let allNodes: ISpeciesItem[] = lookForAll([species_], []);
           setInstance(instances[0]);
           let speciesIds = instances[0].define?.sourceIds?.split(',');
@@ -65,13 +57,8 @@ const Approve: React.FC<IApproveProps> = ({
           let flowSpeciesItem = allNodes.filter(
             (item) => item.id == instances[0].define?.speciesId,
           )[0];
-          storeCtrl.addCheckedSpeciesList(
-            [species_ as ISpeciesItem, speciesItem, flowSpeciesItem],
-            userCtrl.space.id,
-          );
           setSpeciesItem(speciesItem);
           setFlowSpeciesItem(flowSpeciesItem);
-          console.log('instances[0]', instances[0]);
           setTaskHistorys(instances[0].historyTasks as XFlowTaskHistory[]);
         }
       }
@@ -93,9 +80,9 @@ const Approve: React.FC<IApproveProps> = ({
     const res = await kernel.approvalTask(params);
     if (res.success) {
       message.success('审批成功!');
-      await todoCtrl.refreshWorkTodo();
-      reflashMenu();
-      setTabKey(0);
+      await todoCtrl.loadWorkTodo();
+      todoCtrl.changCallback();
+      setPageKey(0);
     } else {
       message.error('审批失败!');
     }
@@ -132,7 +119,8 @@ const Approve: React.FC<IApproveProps> = ({
                                 {th.createTime.substring(0, th.createTime.length - 4)}
                               </div>
                               <div style={{ paddingRight: '24px' }}>
-                                {title}：{userCtrl.findTeamInfoById(record.createUser).name}
+                                {title}：
+                                {userCtrl.findTeamInfoById(record.createUser).name}
                               </div>
                               <div>
                                 {record.comment && <div>审批意见：{record.comment}</div>}
@@ -263,7 +251,7 @@ const Approve: React.FC<IApproveProps> = ({
     <div
       style={{ display: 'flex', cursor: 'pointer' }}
       onClick={() => {
-        setTabKey(0);
+        setPageKey(0);
       }}>
       <a style={{ paddingTop: '2px' }}>
         <ImUndo2 />

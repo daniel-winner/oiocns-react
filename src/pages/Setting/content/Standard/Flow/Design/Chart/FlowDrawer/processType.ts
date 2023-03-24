@@ -139,7 +139,7 @@ type Approvalprops = {
 export const APPROVAL_PROPS: Approvalprops = {
   assignedType: 'USER',
   mode: 'AND',
-  num: 0,
+  num: 1,
   assignedUser: [],
   refuse: {
     type: 'TO_END', //驳回规则 TO_END  TO_NODE  TO_BEFORE

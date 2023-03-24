@@ -150,6 +150,7 @@ export const loadAnythingMenus = async () => {
         key: '实体',
         label: '实体',
         itemType: GroupMenuType.Thing,
+        menus: loadSpeciesOperationMenus(root),
         item: root,
         icon: <im.ImCalculator />,
       }
@@ -181,11 +182,11 @@ const buildSpeciesChildrenTree = (
 /** 加载右侧菜单 */
 export const loadSpeciesOperationMenus = (_: ISpeciesItem) => {
   const items: OperateMenuType[] = [
-    // {
-    //   key: '操作',
-    //   label: '操作',
-    //   icon: <im.ImPlus />,
-    // },
+    {
+      key: '创建实体',
+      label: '创建实体',
+      icon: <im.ImFolderPlus />,
+    },
   ];
   return items;
 };

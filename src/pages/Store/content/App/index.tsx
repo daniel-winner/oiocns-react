@@ -23,6 +23,7 @@ import { ApplicationColumns } from '../../config/columns';
 import CreateAppByCustom from '@/pages/Store/content/App/CreateApp/createAppByCustom';
 import SelectAppTemplate from '@/pages/Store/content/App/CreateApp/selectAppTemplate';
 import AppInfoModal from '@/pages/Store/content/App/CreateApp/appInfoModal';
+import InnerApp from './innerApp';
 
 const StoreApp: React.FC = () => {
   const history = useHistory();
@@ -65,7 +66,7 @@ const StoreApp: React.FC = () => {
         key: 'open',
         label: '打开',
         onClick: () => {
-          appCtrl.setCurProduct(item, true);
+          appCtrl.setCurProduct(item);
           history.push({ pathname: '/online', state: { appId: item.id } });
         },
       },
@@ -173,22 +174,23 @@ const StoreApp: React.FC = () => {
           }
           tabList={[
             { tab: '全部', key: '全部' },
-            { tab: '共享的', key: '共享的' },
-            { tab: '可用的', key: '可用的' },
-            { tab: '创建的', key: '创建的' },
-            { tab: '购买的', key: '购买的' },
+            // { tab: '共享的', key: '共享的' },
+            // { tab: '可用的', key: '可用的' },
+            // { tab: '创建的', key: '创建的' },
+            // { tab: '购买的', key: '购买的' },
           ]}
           activeTabKey={tabKey}
           onTabChange={(k) => {
             setTabKey(k);
           }}>
           <div className={cls['page-content-table']}>
-            <AppShowComp
+            <InnerApp />
+            {/* <AppShowComp
               list={showData}
               searchParams={{ status: tabKey }}
               columns={ApplicationColumns}
               renderOperation={renderOperation}
-            />
+            /> */}
           </div>
         </Card>
       </div>

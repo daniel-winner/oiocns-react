@@ -96,12 +96,9 @@ class MarketController extends Emitter {
     });
 
     /** 订阅常用应用 */
-    kernel.anystore.subscribed(STORE_RECENTLY_APPS, 'user', (data: string[]) => {
-      if (data.length > 0) {
-        this._caches = data;
-      } else {
-        this._caches = [];
-      }
+    kernel.anystore.subscribed(STORE_RECENTLY_APPS, 'user', (list: any) => {
+      const { data = [] } = list;
+      this._caches = data || [];
       this.changCallbackPart(STORE_RECENTLY_APPS);
     });
 
@@ -121,22 +118,9 @@ class MarketController extends Emitter {
    * @param prod 应用
    * @param cache 是否添加至常用应用
    */
-  setCurProduct(prod: IProduct, cache?: boolean): void {
+  setCurProduct(prod: IProduct): void {
     this._currentProduct = prod;
     this.changCallbackPart('current-product');
-    if (cache) {
-      this._caches = this._caches.filter((i) => i != prod.id);
-      this._caches.unshift(prod.id);
-      this._caches = this._caches.slice(0, 7);
-      kernel.anystore.set(
-        STORE_RECENTLY_APPS,
-        {
-          operation: 'replaceAll',
-          data: this._caches,
-        },
-        'user',
-      );
-    }
   }
 
   setCurMarket(market: IMarket) {

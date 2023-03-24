@@ -2,12 +2,20 @@ import { FlowNode } from '@/ts/base/schema';
 import userCtrl from '@/ts/controller/setting';
 import { ISpeciesItem } from '@/ts/core';
 import thingCtrl from '@/ts/controller/thing';
-import { ProForm, ProFormText, ProFormTreeSelect } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormColumnsType,
+  ProFormDependency,
+  ProFormSelect,
+  ProFormText,
+  ProFormTreeSelect,
+} from '@ant-design/pro-components';
 import { message, Modal } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import React from 'react';
-import { kernel } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
+import { IFlowDefine } from '@/ts/core/thing/iflowDefine';
+import SchemaForm from '@/components/SchemaForm';
 
 interface Iprops {
   title: string;
@@ -92,6 +100,49 @@ const DefineInfo = (props: Iprops) => {
     return obj;
   };
 
+  // const columns: ProFormColumnsType<any>[] = [
+  //   {
+  //     title: '办事名称',
+  //     dataIndex: 'name',
+  //     formItemProps: {
+  //       rules: [{ required: true, message: '办事名称为必填项' }],
+  //     },
+  //   },
+  //   {
+  //     title: '商店代码',
+  //     dataIndex: 'code',
+  //     formItemProps: {
+  //       rules: [{ required: true, message: '商店代码为必填项' }],
+  //     },
+  //   },
+  //   {
+  //     title: '是否开放加入',
+  //     dataIndex: 'joinPublic',
+  //     valueType: 'select',
+  //     fieldProps: {
+  //       options: [
+  //         {
+  //           value: true,
+  //           label: '公开',
+  //         },
+  //         {
+  //           value: false,
+  //           label: '不公开',
+  //         },
+  //       ],
+  //     },
+  //     formItemProps: {
+  //       rules: [{ required: true, message: '是否开放加入为必填项' }],
+  //     },
+  //   },
+  //   {
+  //     title: '商店简介',
+  //     dataIndex: 'remark',
+  //     valueType: 'textarea',
+  //     colProps: { span: 24 },
+  //   },
+  // ];
+
   return (
     <Modal
       title={data?.name || title}
@@ -105,8 +156,8 @@ const DefineInfo = (props: Iprops) => {
         if (
           value.name &&
           value.belongId &&
-          value.sourceIds &&
-          value.sourceIds.length > 0
+          (value.isCreate ||
+            (value.isCreate == false && value.sourceIds && value.sourceIds.length > 0))
         ) {
           console.log(value.sourceIds);
         } else {
@@ -136,19 +187,17 @@ const DefineInfo = (props: Iprops) => {
             remark: value.remark,
             resource: resource_,
             belongId: value.belongId,
+            isCreate: value.isCreate,
           });
           if (define) {
             form.resetFields();
           }
           handleOk(define);
         } else {
-          let resource_ = (
-            await kernel.queryNodes({
-              id: value.id || '',
-              spaceId: userCtrl.space.id,
-              page: { offset: 0, limit: 1000, filter: '' },
-            })
-          ).data;
+          // let defines = await species.loadFlowDefines();
+          let defines = await current.loadFlowDefines();
+          let flowDefine: IFlowDefine = defines.filter((item) => item.id == value.id)[0];
+          let resource_ = await flowDefine.queryNodes(false);
           let resourceData = loadResource(resource_);
 
           let define = await current?.updateFlowDefine({
@@ -160,6 +209,7 @@ const DefineInfo = (props: Iprops) => {
             remark: value.remark,
             resource: resourceData,
             belongId: value.belongId,
+            isCreate: value.isCreate,
           });
           if (define) {
             form.resetFields();
@@ -220,25 +270,91 @@ const DefineInfo = (props: Iprops) => {
             treeNodeFilterProp: 'teamName',
           }}
         />
-        <ProFormTreeSelect
+        <ProFormSelect
           width="md"
-          name="sourceIds"
-          label="操作实体"
-          placeholder="请选择操作实体"
+          name="isCreate"
+          label="是否创建实体"
+          placeholder="请选择是否创建实体"
           required={true}
           colProps={{ span: 12 }}
           request={async () => {
-            const species = await thingCtrl.loadSpeciesTree();
-            let tree = toTreeData([species]);
-            return tree;
+            let array: any[] = [
+              {
+                value: true,
+                label: '是',
+              },
+              {
+                value: false,
+                label: '否',
+              },
+            ];
+            return array;
           }}
+          // options={[
+          //   {
+          //     value: true,
+          //     label: '是',
+          //   },
+          //   {
+          //     value: false,
+          //     label: '否',
+          //   },
+          // ]}
           fieldProps={{
             showSearch: true,
-            multiple: true,
             allowClear: true,
           }}
         />
+        <ProFormDependency name={['isCreate']}>
+          {({ isCreate }) => {
+            if (!isCreate)
+              return (
+                <ProFormTreeSelect
+                  width="md"
+                  name="sourceIds"
+                  label="操作实体"
+                  placeholder="请选择操作实体"
+                  required={true}
+                  colProps={{ span: 12 }}
+                  request={async () => {
+                    const species = await thingCtrl.loadSpeciesTree();
+                    let tree = toTreeData([species]);
+                    return tree;
+                  }}
+                  fieldProps={{
+                    showSearch: true,
+                    multiple: true,
+                    allowClear: true,
+                  }}
+                />
+              );
+            return null;
+          }}
+        </ProFormDependency>
       </ProForm>
+      {/* <SchemaForm<any>
+        form={form}
+        title={title}
+        open={open}
+        width={640}
+        rowProps={{
+          gutter: [24, 0],
+        }}
+        submitter={{
+          searchConfig: {
+            resetText: '重置',
+            submitText: '提交',
+          },
+          resetButtonProps: {
+            style: { display: 'none' },
+          },
+          submitButtonProps: {
+            style: { display: 'none' },
+          },
+        }}
+        layoutType="Form"
+        onFinish={async (values) => {}}
+        columns={columns}></SchemaForm> */}
     </Modal>
   );
 };

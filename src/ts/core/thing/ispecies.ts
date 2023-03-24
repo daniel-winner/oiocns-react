@@ -12,12 +12,13 @@ import {
   XAttributeArray,
   XFlowDefine,
   XFlowDefineArray,
-  XDictArray,
   XOperationArray,
   XSpecies,
   XAttribute,
+  XFlowInstance,
 } from '../../base/schema';
 import { IDict, INullDict } from './idict';
+import { IFlowDefine } from './iflowDefine';
 
 /** 可为空的标准分类 */
 export type INullSpeciesItem = ISpeciesItem | undefined;
@@ -42,24 +43,27 @@ export interface ISpeciesItem {
   belongInfo: TargetShare;
   /** 属性 */
   attrs?: XAttribute[];
+  /** 流程设计 */
+  defines?: IFlowDefine[];
+  /** 流程实例 */
+  instances?: XFlowInstance[];
+  /**字典 */
+  dicts?: IDict[];
   /** 加载信息 */
   loadInfo(info: TargetShare): Promise<ISpeciesItem>;
   /** 加载分类特性 */
-  loadAttrs(
+  loadAttrs(reload: boolean): Promise<XAttribute[]>;
+  /** 分页查询分类特性 */
+  loadAttrsByPage(
     id: string,
     recursionOrg: boolean,
     recursionSpecies: boolean,
     page: PageRequest,
   ): Promise<XAttributeArray>;
   /** 加载分类字典 */
-  loadDicts(
-    id: string,
-    recursionOrg: boolean,
-    recursionSpecies: boolean,
-    page: PageRequest,
-  ): Promise<XDictArray>;
+  loadDicts(reload: boolean): Promise<IDict[]>;
   /** 加载分类字典实体 */
-  loadDictsEntity(
+  loadDictsByPage(
     spaceId: string,
     recursionOrg: boolean,
     recursionSpecies: boolean,
@@ -74,7 +78,11 @@ export interface ISpeciesItem {
     page: PageRequest,
   ): Promise<XOperationArray>;
   /** 加载流程设计 */
-  loadFlowDefines(id: string, page: PageRequest): Promise<XFlowDefineArray>;
+  loadFlowDefines(reload?: boolean): Promise<IFlowDefine[]>;
+  /** 查询流程设计 */
+  loadFlowDefinesByPage(id: string, page: PageRequest): Promise<XFlowDefineArray>;
+  /**查询流程实例 */
+  loadFlowInstances(): Promise<XFlowInstance[]>;
   /**
    * 创建标准分类项
    * @param data 创建参数

@@ -56,15 +56,6 @@ const FieldInfo: React.FC<IProps> = ({ nextStep, currentFormValue, onChange }) =
           rules={[{ required: true, message: '请输入办事名称!' }]}
         />
         <ProFormTreeSelect
-          // initialValue={['0-0-0']}
-          // label="数据源"
-          // fieldProps={{
-          //   fieldNames: {
-          //     label: 'name',
-          //   },
-          //   treeData,
-          //   placeholder: '请选择',
-          // }}
           name="datasource"
           label="数据源"
           placeholder="请选择数据源"

@@ -1,8 +1,10 @@
+import { XFlowTaskHistory } from '@/ts/base/schema';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import TaskList from './TaskList';
 import Approve from './Approve';
-import { XFlowTaskHistory } from '@/ts/base/schema';
+import CarbonCopy from './CarbonCopy';
+import Done from './Done';
+import TaskList from './TaskList';
 
 interface IProps {
   reflashMenu: () => void;
@@ -13,28 +15,45 @@ interface IProps {
  * @returns
  */
 const WorkTodo: React.FC<IProps> = ({ selectMenu, reflashMenu }) => {
-  const [tabKey, setTabKey] = useState(0);
+  const [pageKey, setPageKey] = useState(0);
+  const [tabKey, setTabKey] = useState('1');
   const [flowTask, setFlowTask] = useState<XFlowTaskHistory>();
 
   useEffect(() => {
-    setTabKey(0);
+    setPageKey(0);
   }, [selectMenu]);
 
-  return tabKey == 0 ? (
-    <TaskList
-      selectMenu={selectMenu}
-      setTabKey={setTabKey}
-      setFlowTask={setFlowTask}
-      tabKey={tabKey}
-    />
-  ) : (
-    <Approve
-      selectMenu={selectMenu}
-      flowTask={flowTask}
-      setTabKey={setTabKey}
-      reflashMenu={reflashMenu}
-    />
-  );
+  switch (pageKey) {
+    case 0:
+      return (
+        <TaskList
+          selectMenu={selectMenu}
+          setPageKey={setPageKey}
+          setFlowTask={setFlowTask}
+          pageKey={pageKey}
+          tabKey={tabKey}
+          setTabKey={setTabKey}
+        />
+      );
+    case 1:
+      return (
+        <Approve selectMenu={selectMenu} flowTask={flowTask} setPageKey={setPageKey} />
+      );
+    case 2:
+      return (
+        <CarbonCopy selectMenu={selectMenu} flowTask={flowTask} setPageKey={setPageKey} />
+      );
+    case 3:
+      return (
+        <Done
+          selectMenu={selectMenu}
+          instanceId={flowTask?.instanceId}
+          setPageKey={setPageKey}
+        />
+      );
+    default:
+      return <div></div>;
+  }
 };
 
 export default WorkTodo;

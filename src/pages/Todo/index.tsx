@@ -1,16 +1,16 @@
-import React, { useEffect } from 'react';
-import Content from './content';
-import MainLayout from '@/components/MainLayout';
-import useMenuUpdate from './hooks/useMenuUpdate';
 import { IconFont } from '@/components/IconFont';
+import MainLayout from '@/components/MainLayout';
 import userCtrl from '@/ts/controller/setting';
 import todoCtrl from '@/ts/controller/todo/todoCtrl';
+import React, { useEffect } from 'react';
+import Content from './content';
+import useMenuUpdate from './hooks/useMenuUpdate';
 
-const Setting: React.FC<any> = () => {
+const Todo: React.FC<any> = () => {
   const [key, menus, refreshMenu, selectMenu, setSelectMenu] = useMenuUpdate();
   useEffect(() => {
     refreshMenu();
-    todoCtrl.refreshWorkTodo();
+    todoCtrl.loadWorkTodo();
   }, [userCtrl.space.id]);
 
   return (
@@ -36,4 +36,4 @@ const Setting: React.FC<any> = () => {
   );
 };
 
-export default Setting;
+export default Todo;

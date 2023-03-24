@@ -1,21 +1,20 @@
 import CardOrTableComp from '@/components/CardOrTableComp';
-import OioForm from '@/pages/Setting/components/render';
+import OioForm from '@/components/Form';
 import { FlowColumn } from '@/pages/Setting/config/columns';
 import Thing from '@/pages/Store/content/Thing/Thing';
 import { kernel } from '@/ts/base';
 import { XFlowDefine } from '@/ts/base/schema';
 import userCtrl from '@/ts/controller/setting';
-import storeCtrl from '@/ts/controller/store';
 import thingCtrl from '@/ts/controller/thing';
 import todoCtrl from '@/ts/controller/todo/todoCtrl';
 import { ISpeciesItem } from '@/ts/core';
+import { IFlowDefine } from '@/ts/core/thing/iflowDefine';
 import { SpeciesItem } from '@/ts/core/thing/species';
 import { getUuid } from '@/utils/tools';
-import { PlusOutlined } from '@ant-design/icons';
 import { ProFormInstance } from '@ant-design/pro-components';
 import { Button, Card, InputNumber, message, Modal, Result, Tabs } from 'antd';
 import TabPane from 'antd/lib/tabs/TabPane';
-import { Editing, Item } from 'devextreme-react/data-grid';
+import { Editing } from 'devextreme-react/data-grid';
 import React, { useEffect, useRef, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import useMenuUpdate from '../../hooks/useMenuUpdate';
@@ -25,6 +24,7 @@ import cls from './index.module.less';
 interface IProps {
   selectMenu: MenuItemType;
 }
+
 /**
  * 办事-业务流程--发起
  * @returns
@@ -37,7 +37,7 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
   const [defineKey, setDefineKey] = useState<string>();
   const [chooseThingModal, setChooseThingModal] = useState<ISpeciesItem[]>([]);
   const [operations, setOperations] = useState<any>([]);
-  const [currentDefine, setCurrentDefine] = useState<any>();
+  const [currentDefine, setCurrentDefine] = useState<XFlowDefine>();
   const [createThingByInputNumModal, setCreateThingByInputNumModal] =
     useState<boolean>(false);
   const [createThingNum, setCreateThingNum] = useState<number>();
@@ -54,12 +54,8 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
     setOperations([]);
     const loadFlowDefine = async () => {
       if (species?.id) {
-        const res = await kernel.queryDefine({
-          speciesId: species?.id,
-          spaceId: userCtrl.space.id,
-          page: { offset: 0, limit: 1000000, filter: '' },
-        });
-        setFlowDefines(res.data?.result || []);
+        const defines: IFlowDefine[] = await species.loadFlowDefines();
+        setFlowDefines(defines.map((item) => item.target));
         setDefineKey(getUuid());
       }
     };
@@ -77,7 +73,7 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
   };
 
   const getRenderOperations = (data: XFlowDefine) => {
-    const menus = [];
+    const menus: any[] = [];
     menus.push({
       key: 'retractApply',
       label: '发起',
@@ -86,13 +82,9 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
         // 1、 选物
         // 2、 通过流程，获取所有流程节点
         // 3、 通过流程节点获取节点对应的表单
-        const resource = (
-          await kernel.queryNodes({
-            id: data.id,
-            spaceId: userCtrl.space.id,
-            page: { offset: 0, limit: 100000, filter: '' },
-          })
-        ).data;
+        let defines = await species.loadFlowDefines(false);
+        let define = await defines.filter((item) => item.id == data.id)[0];
+        const resource = await define.queryNodes(false);
         if (!resource.operations) {
           message.error('流程未绑定表单');
           return;
@@ -101,18 +93,19 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
         if (resource.operations && chooseThingModal.length == 0) {
           setOperations(resource.operations);
         }
-        const species_ = await thingCtrl.loadSpeciesTree();
-        storeCtrl.addCheckedSpeciesList([species_ as ISpeciesItem], userCtrl.space.id);
-        if (data.sourceIds && data.sourceIds != '') {
-          let idArray = data.sourceIds.split(',').filter((id) => id != '');
-          let allNodes: ISpeciesItem[] = lookForAll([species_], []);
-          // getSpecies(species, idArray, []);
-          let speciess = allNodes.filter((item) => idArray.includes(item.id));
-          storeCtrl.addCheckedSpeciesList(speciess, userCtrl.space.id);
-          setChooseThingModal(speciess);
-        } else {
-          if (species_) {
-            setChooseThingModal([species_]);
+        let isCreate = data.isCreate;
+        if (!isCreate) {
+          const species_ = await thingCtrl.loadSpeciesTree();
+          if (data.sourceIds && data.sourceIds != '') {
+            let idArray = data.sourceIds?.split(',').filter((id) => id != '') || [];
+            let allNodes: ISpeciesItem[] = lookForAll([species_], []);
+            // getSpecies(species, idArray, []);
+            let speciess = allNodes.filter((item) => idArray.includes(item.id));
+            setChooseThingModal(speciess);
+          } else {
+            if (species_) {
+              setChooseThingModal([species_]);
+            }
           }
         }
       },
@@ -164,18 +157,28 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
                 ),
               }}
               onFinished={async (values: any) => {
-                //发起流程
-                let instance = await kernel.createInstance({
-                  defineId: currentDefine.id,
+                let rows_ = rows;
+                if (!currentDefine?.isCreate) {
+                  let res = await kernel.anystore.createThing(
+                    1,
+                    userCtrl.isCompanySpace ? 'company' : 'user',
+                  );
+                  if (res && res.success) {
+                    rows_ = res.data;
+                  }
+                }
+                //发起流程tableKey
+                let res = await kernel.createInstance({
+                  defineId: currentDefine?.id || '',
                   SpaceId: userCtrl.space.id,
                   content: '',
                   contentType: 'Text',
                   data: JSON.stringify({ ...data, ...values }),
-                  title: currentDefine.name,
+                  title: currentDefine?.name || '',
                   hook: '',
-                  thingIds: rows.map((row: any) => row['Id']),
+                  thingIds: rows_.map((row: any) => row['Id']),
                 });
-                if (instance) {
+                if (res.success) {
                   setOperations([]);
                   setSuccessPage(true);
                 }
@@ -189,27 +192,29 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
               }}
             />
           ))}
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="实体" key="1">
-              <Thing
-                dataSource={rows}
-                current={chooseThingModal[0]}
-                checkedList={chooseThingModal.map((e) => {
-                  return { item: e };
-                })}
-                selectable={false}
-                editingTool={
-                  <Editing
-                    allowAdding={false}
-                    allowUpdating={false}
-                    allowDeleting={false}
-                    selectTextOnEditStart={true}
-                    useIcons={true}
-                  />
-                }
-              />
-            </TabPane>
-          </Tabs>
+          {currentDefine && !currentDefine.isCreate && (
+            <Tabs defaultActiveKey="1">
+              <TabPane tab="实体" key="1">
+                <Thing
+                  dataSource={rows}
+                  current={chooseThingModal[0]}
+                  checkedList={chooseThingModal.map((e) => {
+                    return { item: e };
+                  })}
+                  selectable={false}
+                  editingTool={
+                    <Editing
+                      allowAdding={false}
+                      allowUpdating={false}
+                      allowDeleting={false}
+                      selectTextOnEditStart={true}
+                      useIcons={true}
+                    />
+                  }
+                />
+              </TabPane>
+            </Tabs>
+          )}
         </>
       )}
 
@@ -271,22 +276,22 @@ const WorkStart: React.FC<IProps> = ({ selectMenu }) => {
               })}
               onSelectionChanged={(rows: any) => {}}
               height={'calc(80vh - 175px)'}
-              toolBarItems={
-                chooseThingModal[0].name == '道'
-                  ? [
-                      <Item key={getUuid()}>
-                        {' '}
-                        <Button
-                          icon={<PlusOutlined></PlusOutlined>}
-                          onClick={() => {
-                            setCreateThingByInputNumModal(true);
-                          }}>
-                          创建实体
-                        </Button>
-                      </Item>,
-                    ]
-                  : []
-              }
+              // toolBarItems={
+              //   chooseThingModal[0].name == '道'
+              //     ? [
+              //         <Item key={getUuid()}>
+              //           {' '}
+              //           <Button
+              //             icon={<PlusOutlined></PlusOutlined>}
+              //             onClick={() => {
+              //               setCreateThingByInputNumModal(true);
+              //             }}>
+              //             创建实体
+              //           </Button>
+              //         </Item>,
+              //       ]
+              //     : []
+              // }
               editingTool={
                 <Editing
                   allowAdding={false}

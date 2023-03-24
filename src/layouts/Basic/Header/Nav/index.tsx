@@ -19,26 +19,18 @@ const HeaderNav: React.FC<RouteComponentProps> = () => {
   const [chatKey] = useCtrlUpdate(chatCtrl);
   const [taskNum, setTaskNum] = useState(0);
   const navs = [
-    // {
-    //   key: 'welfare',
-    //   path: '/welfare',
-    //   title: '公益仓',
-    //   icon: <HeartFilled />,
-    //   count: 0,
-    //   fath: '/welfare',
-    // },
     {
       key: chatKey,
       path: '/chat',
-      title: '聊天',
+      title: '沟通',
       icon: 'icon-message',
       count: chatCtrl.getNoReadCount(),
       fath: '/chat',
     },
     {
-      key: 'task',
+      key: 'todo',
       path: '/todo',
-      title: '待办',
+      title: '办事',
       icon: 'icon-todo',
       count: taskNum,
       fath: '/todo',

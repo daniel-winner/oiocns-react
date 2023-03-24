@@ -1,7 +1,7 @@
 import React from 'react';
 import { XOperation } from '@/ts/base/schema';
 import { Modal } from 'antd';
-import OioForm from './render';
+import OioForm from '../../../components/Form';
 
 interface FormDesignProps {
   open: boolean;
@@ -25,7 +25,7 @@ const ViewFormModal = (props: FormDesignProps) => {
       destroyOnClose={true}
       cancelText={'关闭'}
       width={1000}>
-      <OioForm operation={data as XOperation} />
+      <OioForm operation={data as XOperation} formRef={undefined} />
     </Modal>
   );
 };

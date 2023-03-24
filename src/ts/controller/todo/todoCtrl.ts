@@ -109,17 +109,11 @@ class TodoController extends Emitter {
   public get WorkTodo(): XFlowTaskHistory[] {
     return this._workTodo;
   }
-  /** 强制刷新待办事项 */
-  public async refreshWorkTodo(): Promise<XFlowTaskHistory[]> {
+  /** 加载办事项 */
+  public async loadWorkTodo(): Promise<XFlowTaskHistory[]> {
     this._workTodo =
       (await kernel.queryApproveTask({ id: userCtrl.space.id })).data?.result || [];
     return this._workTodo;
-  }
-  /** 获取事类别的待办 */
-  public getWorkTodoBySpeciesId(speciesId: string): XFlowTaskHistory[] {
-    return this._workTodo.filter((todo) => {
-      return speciesId === todo.instance?.define?.speciesId;
-    });
   }
   /** 获取总的待办数量 */
   public async getTaskCount(): Promise<number> {
@@ -141,6 +135,7 @@ class TodoController extends Emitter {
     for (let i = 0; i < publishTodos.length; i++) {
       sum += await publishTodos[i]?.getCount();
     }
+    sum += this._workTodo.length;
     return sum;
   }
   /** 页面Tab控制序列 */
@@ -150,6 +145,10 @@ class TodoController extends Emitter {
   public setTabIndex(index: string): void {
     this._tabIndex = index;
     this.changCallback();
+  }
+
+  public refreshWorkTodo() {
+    console.log('');
   }
 }
 

@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import SchemaForm from '@/components/SchemaForm';
 import { AttributeModel } from '@/ts/base/model';
-import { IDict, ISpeciesItem, ITarget } from '@/ts/core';
+import { ISpeciesItem, ITarget } from '@/ts/core';
 import userCtrl from '@/ts/controller/setting';
 import { XAttribute } from '@/ts/base/schema';
 import { targetsToTreeData } from '..';
+import { getUuid } from '@/utils/tools';
 
 interface Iprops {
   title: string;
@@ -23,26 +24,10 @@ const AttributeModal = (props: Iprops) => {
   const [selectType, setSelectType] = useState<string>();
   const { open, title, handleOk, data, current, handleCancel } = props;
   const formRef = useRef<ProFormInstance>();
-  const [dictItemMap, setDictItemMap] = useState<any>({});
-  const buildTree = (dicts: IDict[]) => {
-    const result: any = {};
-    for (const item of dicts) {
-      result[item.id] = { id: item.id, name: item.name, text: item.name };
-    }
-    return result;
-  };
+  const [formKey, setFormKey] = useState<string>();
   useEffect(() => {
-    current
-      .loadDictsEntity(userCtrl.space.id, true, true, {
-        offset: 0,
-        limit: 10000,
-        filter: '',
-      })
-      .then((data) => {
-        setDictItemMap(buildTree(data));
-      });
-    // const dataSelectItems = buildTree(data);
-  }, []);
+    setFormKey(getUuid());
+  }, [open, current]);
   const getFromColumns = () => {
     const columns: ProFormColumnsType<AttributeModel>[] = [
       {
@@ -166,7 +151,12 @@ const AttributeModal = (props: Iprops) => {
         dataIndex: 'dictId',
         valueType: 'select',
         formItemProps: { rules: [{ required: true, message: '枚举分类为必填项' }] },
-        valueEnum: dictItemMap,
+        request: async () => {
+          const res = await current.loadDicts(false);
+          return res.map((item) => {
+            return { id: item.id, label: item.name, value: item.id };
+          });
+        },
         fieldProps: {
           disabled: selectType !== '选择型',
           showSearch: true,
@@ -186,6 +176,7 @@ const AttributeModal = (props: Iprops) => {
   };
   return (
     <SchemaForm<AttributeModel>
+      key={formKey}
       formRef={formRef}
       title={title}
       open={open}

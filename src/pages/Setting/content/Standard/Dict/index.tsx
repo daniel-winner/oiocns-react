@@ -47,7 +47,7 @@ const DictInfo: React.FC<IProps> = ({
   const [itemKey, setItemKey] = useState<string>();
   const [dicts, setDicts] = useState<any[]>([]);
   const loadDicts = async () => {
-    let res: IDict[] = await current.loadDictsEntity(
+    let res: IDict[] = await current.loadDictsByPage(
       userCtrl.space.id,
       recursionOrg,
       recursionSpecies,
@@ -65,6 +65,7 @@ const DictInfo: React.FC<IProps> = ({
       setSelectKey(dicts[0]?.key);
       setCurrentDict(dicts[0].item);
       setItemKey(getUuid());
+      setShowAddDict(true);
     } else {
       setCurrentDict(undefined);
       setItemKey(getUuid());
@@ -196,7 +197,7 @@ const DictInfo: React.FC<IProps> = ({
             rowKey={'id'}
             request={async (page) => {
               if (currentDict) {
-                let res = await currentDict.loadItems(userCtrl.space.id, page);
+                let res = await currentDict.loadItemsByPage(userCtrl.space.id, page);
                 return res;
               } else {
                 return {

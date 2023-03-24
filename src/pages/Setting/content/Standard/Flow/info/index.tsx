@@ -10,10 +10,7 @@ import FlowCard from './FlowCard';
 import { FlowColumn } from '@/pages/Setting/config/columns';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
 import { ISpeciesItem } from '@/ts/core/thing/ispecies';
-import { kernel } from '@/ts/base';
 import { PageRequest } from '@/ts/base/model';
-import { getUuid } from '@/utils/tools';
-// import FieldInfo from '../Design/Field';
 import DefineInfo from '@/pages/Setting/content/Standard/Flow/info/DefineInfo';
 
 interface IProps {
@@ -41,8 +38,6 @@ const FlowList: React.FC<IProps> = ({
   setModalType,
   onDesign,
   onCurrentChaned,
-  setInstance,
-  setTestModel,
 }: IProps) => {
   const parentRef = useRef<any>(null);
   const parentRef2 = useRef<any>(null);
@@ -55,7 +50,6 @@ const FlowList: React.FC<IProps> = ({
     if (modalType.includes('新增办事')) {
       onCurrentChaned(undefined);
       setDefineInfo(undefined);
-      // onDesign();
     }
   }, [modalType]);
 
@@ -84,39 +78,6 @@ const FlowList: React.FC<IProps> = ({
           onDesign();
         },
       },
-      // {
-      //   key: 'createInstance',
-      //   label: '发起测试流程',
-      //   onClick: async () => {
-      //     let res = await kernel.createInstance({
-      //       defineId: record.id,
-      //       SpaceId: userCtrl.space.id,
-      //       content: 'Text文本显示正常',
-      //       contentType: 'Text',
-      //       data: JSON.stringify({
-      //         id: '789171',
-      //         name: '测试流程的数据',
-      //         code: 'test',
-      //         // price: '0',
-      //         remark: '测试流程的数据',
-      //       }),
-      //       title: record.name,
-      //       hook: '',
-      //       thingIds: [],
-      //     });
-      //     if (res.success) {
-      //       message.success('发起测试流程成功');
-      //       setTestModel?.call(this, true);
-      //       setInstance(res.data);
-      //       onCurrentChaned(record);
-      //       setOperateOrgId(userCtrl.space.id);
-      //       setModalType('设计流程');
-      //       onDesign();
-      //     } else {
-      //       message.error('发起测试流程失败');
-      //     }
-      //   },
-      // },
     ];
     if (isAdmin) {
       operations.push({
@@ -131,7 +92,7 @@ const FlowList: React.FC<IProps> = ({
             okType: 'danger',
             cancelText: '取消',
             onOk: async () => {
-              if (await userCtrl.space.deleteDefine(record.id)) {
+              if (await species?.deleteFlowDefine(record.id)) {
                 message.success('删除成功');
                 setBinds([]);
                 tforceUpdate();
@@ -156,21 +117,7 @@ const FlowList: React.FC<IProps> = ({
       {
         key: 'bind',
         label: '绑定',
-        onClick: async () => {
-          // setEditData(item);
-          // setModalType('修改业务标准');
-          let res = await kernel.createFlowRelation({
-            defineId: operationModal || '',
-            operationId: item.id,
-          });
-          if (res.success) {
-            message.success('绑定成功');
-            setOperationModal(undefined);
-            setKey(getUuid());
-          } else {
-            message.error('绑定失败');
-          }
-        },
+        onClick: async () => {},
       },
     ];
   };
@@ -190,10 +137,8 @@ const FlowList: React.FC<IProps> = ({
               operation={renderOperation}
               rowKey={(record: XFlowDefine) => record.id}
               request={async (page) => {
-                let res: XFlowDefineArray | undefined = await species?.loadFlowDefines(
-                  userCtrl.space.id,
-                  page,
-                );
+                let res: XFlowDefineArray | undefined =
+                  await species?.loadFlowDefinesByPage(userCtrl.space.id, page);
                 return res;
               }}
               onRow={(record: any) => {

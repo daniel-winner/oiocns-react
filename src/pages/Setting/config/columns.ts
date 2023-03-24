@@ -1,9 +1,8 @@
 import { schema } from '@/ts/base';
-import { INullSpeciesItem, IProduct } from '@/ts/core';
+import { IProduct } from '@/ts/core';
 import { ProColumns } from '@ant-design/pro-table';
 import userCtrl from '@/ts/controller/setting';
 import thingCtrl from '@/ts/controller/thing';
-import { IAuthority } from '@/ts/core/target/authority/iauthority';
 
 export const PersonColumns: ProColumns<schema.XTarget>[] = [
   {
@@ -160,12 +159,20 @@ export const IdentityColumn: ProColumns<schema.XIdentity>[] = [
     dataIndex: 'id',
   },
   {
+    title: '角色编号',
+    dataIndex: 'code',
+  },
+  {
     title: '角色名称',
     dataIndex: 'name',
   },
   {
     title: '权限',
     dataIndex: 'name',
+  },
+  {
+    title: '组织',
+    dataIndex: 'belongId',
   },
   {
     title: '备注',
@@ -197,7 +204,7 @@ export const AttributeColumns: ProColumns<schema.XAttribute>[] = [
     key: 'speciesId',
     width: 150,
     render: (_, record) => {
-      return findSpecesName([thingCtrl.species], record.speciesId);
+      return thingCtrl.speciesList.find((a) => a.id == record.speciesId)?.name ?? '未知';
     },
   },
   {
@@ -232,42 +239,6 @@ export const AttributeColumns: ProColumns<schema.XAttribute>[] = [
   },
 ];
 
-export const findSpecesName = (
-  species: INullSpeciesItem[],
-  id: string,
-): string | undefined => {
-  let specesName = undefined;
-  for (const item of species) {
-    if (item?.id == id) {
-      specesName = item.name;
-    } else if (item?.children) {
-      specesName = findSpecesName(item?.children, id);
-    }
-    if (specesName) {
-      break;
-    }
-  }
-  return specesName;
-};
-
-export const findAuthName = (auths: IAuthority[], id: string): string | undefined => {
-  if (!id) {
-    return undefined;
-  }
-  let authName = undefined;
-  for (const item of auths) {
-    if (item?.id == id) {
-      authName = item.name;
-    } else if (item?.children) {
-      authName = findAuthName(item?.children, id);
-    }
-    if (authName) {
-      break;
-    }
-  }
-  return authName;
-};
-
 export const OperationColumns: ProColumns<schema.XOperation>[] = [
   {
     title: '序号',
@@ -292,7 +263,7 @@ export const OperationColumns: ProColumns<schema.XOperation>[] = [
     key: 'speciesId',
     width: 150,
     render: (_, record) => {
-      return findSpecesName([thingCtrl.species], record.speciesId);
+      return thingCtrl.speciesList.find((a) => a.id == record.speciesId)?.name ?? '未知';
     },
   },
   {

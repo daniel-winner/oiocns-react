@@ -8,6 +8,7 @@ import { ISpeciesItem, loadSpeciesTree } from '@/ts/core';
 import CustomTree from '@/components/CustomTreeComp';
 import { ImTree } from 'react-icons/im';
 import { INullDict } from '@/ts/core/thing/idict';
+import thingCtrl from '@/ts/controller/thing';
 
 interface Iprops {
   open: boolean;
@@ -112,7 +113,7 @@ const TransToDict = (props: Iprops) => {
   };
 
   const onLoadSpeciesData = async () => {
-    const species = await loadSpeciesTree(userCtrl.space.id);
+    const species = await thingCtrl.loadSpeciesTree();
     if (species) {
       setLeftTreeData([buildSpeciesTree(species)]);
     }

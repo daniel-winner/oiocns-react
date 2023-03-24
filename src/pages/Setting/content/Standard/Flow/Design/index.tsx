@@ -1,9 +1,10 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import cls from './index.module.less';
 import ChartDesign from './Chart';
-import { Branche, FlowNode, XFlowDefine } from '@/ts/base/schema';
+import { Branche, FlowNode, XDictItem, XFlowDefine } from '@/ts/base/schema';
 import { Branche as BrancheModel } from '@/ts/base/model';
 import { Button, Card, Layout, message, Modal, Space, Steps } from 'antd';
+import { IDict } from '@/ts/core/thing/idict';
 import {
   ExclamationCircleOutlined,
   SendOutlined,
@@ -13,9 +14,9 @@ import {
 } from '@ant-design/icons';
 import userCtrl from '@/ts/controller/setting';
 import { ISpeciesItem } from '@/ts/core';
-import { kernel } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
 import { ImWarning } from 'react-icons/im';
+import { IFlowDefine } from '@/ts/core/thing/iflowDefine';
 
 interface IProps {
   current: XFlowDefine;
@@ -41,6 +42,7 @@ type FlowDefine = {
   public: boolean | undefined;
   operateOrgId?: string;
   sourceIds?: string;
+  isCreate: boolean;
 };
 
 const Design: React.FC<IProps> = ({
@@ -49,7 +51,6 @@ const Design: React.FC<IProps> = ({
   modalType,
   operateOrgId,
   instance,
-  setOperateOrgId,
   setInstance,
   setModalType,
   onBack,
@@ -67,6 +68,7 @@ const Design: React.FC<IProps> = ({
     public: true,
     operateOrgId: operateOrgId,
     sourceIds: undefined,
+    isCreate: true,
   });
   const [resource, setResource] = useState({
     nodeId: `node_${getUuid()}`,
@@ -96,32 +98,30 @@ const Design: React.FC<IProps> = ({
   });
 
   const loadDictItems = async (dictId: any) => {
-    let res = await kernel.queryDictItems({
-      id: dictId,
-      spaceId: userCtrl.space.id,
-      page: {
-        offset: 0,
-        limit: 1000,
-        filter: '',
-      },
-    });
-    return res.data.result?.map((item) => {
+    if (!species) {
+      return [];
+    }
+    let dicts: IDict[] = await species.loadDicts(false);
+    let dict: IDict = dicts.filter((item) => item.id == dictId)[0];
+    if (!dict) {
+      return [];
+    }
+    let res = await dict.loadItems();
+    return res.map((item: XDictItem) => {
       return { label: item.name, value: item.value };
     });
   };
   useEffect(() => {
     const load = async () => {
-      if (current) {
+      if (current && species) {
         // content字段可能取消
         let resource_: any;
-        // if (modalType != '设计流程') {
-        resource_ = (
-          await kernel.queryNodes({
-            id: current.id || '',
-            spaceId: operateOrgId,
-            page: { offset: 0, limit: 1000, filter: '' },
-          })
-        ).data;
+        let defines = await species.loadFlowDefines();
+        if (!defines) {
+          return;
+        }
+        let flowDefine: IFlowDefine = defines.filter((item) => item.id == current.id)[0];
+        resource_ = await flowDefine.queryNodes(false);
         let resourceData = loadResource(resource_, 'flowNode', '', '', undefined, '');
         let nodes = getAllNodes(resourceData, []);
         let spaceRootNodes = nodes.filter(
@@ -156,54 +156,44 @@ const Design: React.FC<IProps> = ({
           };
         }
         if (instance) {
-          let res = await kernel.queryInstance({
-            id: instance.id,
-            spaceId: instance.belongId,
-            page: { offset: 0, limit: 1000, filter: '' },
-          });
-          let instance_: any = res.data.result ? res.data.result[0] : undefined;
-          setInstance(instance_);
-          showTask(instance_, resourceData);
+          // let res = await species?.loadFlowInstances(true);
+          // let instance_: any = res[0];
+          setInstance(instance);
+          showTask(instance, resourceData);
         } else {
           setResource(resourceData);
         }
-        // }
 
-        species!
-          .loadAttrs(userCtrl.space.id, true, true, {
-            offset: 0,
-            limit: 100,
-            filter: '',
-          })
-          .then((res) => {
-            let attrs = res.result || [];
-            setConditionData({
-              name: current.name || '',
-              remark: current.remark,
-              authId: current.authId || '',
-              belongId: current.belongId,
-              public: current.public,
-              sourceIds: current.sourceIds,
-              operateOrgId: operateOrgId,
-              fields: attrs.map((attr: any) => {
-                switch (attr.valueType) {
-                  case '描述型':
-                    return { label: attr.name, value: attr.id, type: 'STRING' };
-                  case '数值型':
-                    return { label: attr.name, value: attr.id, type: 'NUMERIC' };
-                  case '选择型':
-                    return {
-                      label: attr.name,
-                      value: attr.id,
-                      type: 'DICT',
-                      dict: loadDictItems(attr.dictId),
-                    };
-                  default:
-                    return { label: attr.name, value: attr.id, type: 'STRING' };
-                }
-              }),
-            });
+        species.loadAttrs(false).then((res) => {
+          let attrs = res;
+          setConditionData({
+            name: current.name || '',
+            remark: current.remark,
+            authId: current.authId || '',
+            belongId: current.belongId,
+            public: current.public,
+            sourceIds: current.sourceIds,
+            operateOrgId: operateOrgId,
+            isCreate: current.isCreate,
+            fields: attrs.map((attr: any) => {
+              switch (attr.valueType) {
+                case '描述型':
+                  return { label: attr.name, value: attr.id, type: 'STRING' };
+                case '数值型':
+                  return { label: attr.name, value: attr.id, type: 'NUMERIC' };
+                case '选择型':
+                  return {
+                    label: attr.name,
+                    value: attr.id,
+                    type: 'DICT',
+                    dict: loadDictItems(attr.dictId),
+                  };
+                default:
+                  return { label: attr.name, value: attr.id, type: 'STRING' };
+              }
+            }),
           });
+        });
       }
       // setLoaded(true);
     };
@@ -667,47 +657,6 @@ const Design: React.FC<IProps> = ({
     setResource(resource_showState);
   };
 
-  const next = async (instanceId: string, belongId: string, freshed: boolean) => {
-    let res = await kernel.queryInstance({
-      id: instanceId,
-      spaceId: belongId,
-      page: { offset: 0, limit: 1000, filter: '' },
-    });
-    let instance: any = res.data.result ? res.data.result[0] : undefined;
-    if (freshed) {
-      setInstance(instance);
-
-      showTask(instance, resource);
-    }
-    // let node: FlowNode = nodeRes.data;
-
-    if (!freshed && instance) {
-      let needFresh = false;
-      if (instance.historyTasks) {
-        for (let task of instance.historyTasks) {
-          if (task.status == 1) {
-            let approvalResult = await kernel.approvalTask({
-              id: task.id,
-              status: 100,
-              comment: '经评审讨论通过',
-              data: '',
-            });
-            if (approvalResult.success) {
-              message.success('审核成功');
-              // next(instanceId, belongId, true);
-              needFresh = true;
-            } else {
-              message.error('审核失败');
-            }
-          }
-        }
-      }
-
-      if (needFresh) {
-        next(instanceId, belongId, true);
-      }
-    }
-  };
   return (
     <div className={cls['company-info-content']}>
       <Card bordered={false}>
@@ -768,17 +717,6 @@ const Design: React.FC<IProps> = ({
                         if (Array.isArray(sourceIds_)) {
                           sourceIds_ = sourceIds_.join(',');
                         }
-                        // if (modalType == '设计流程') {
-                        //   define = await species?.createFlowDefine({
-                        //     code: conditionData.name,
-                        //     name: conditionData.name,
-                        //     sourceIds: sourceIds_,
-                        //     fields: JSON.stringify(conditionData.fields),
-                        //     remark: conditionData.remark,
-                        //     resource: resource_,
-                        //     belongId: conditionData.belongId,
-                        //   });
-                        // } else {
                         define = await species?.updateFlowDefine({
                           id: current.id,
                           code: conditionData.name,
@@ -788,8 +726,8 @@ const Design: React.FC<IProps> = ({
                           remark: conditionData.remark,
                           resource: resource_,
                           belongId: operateOrgId,
+                          isCreate: conditionData.isCreate,
                         });
-                        // }
                         if (define) {
                           message.success('保存成功');
                           onBack();
@@ -822,27 +760,21 @@ const Design: React.FC<IProps> = ({
             <Card bordered={false}>
               {/* 基本信息组件 */}
               <div>
-                <ChartDesign
-                  // key={key}
-                  defaultEditable={defaultEditable}
-                  species={species}
-                  operateOrgId={operateOrgId}
-                  designOrgId={conditionData.belongId}
-                  conditions={conditionData.fields}
-                  resource={resource}
-                  scale={scale}
-                />
+                {conditionData && (
+                  <ChartDesign
+                    // key={key}
+                    defaultEditable={defaultEditable}
+                    species={species}
+                    operateOrgId={operateOrgId}
+                    designOrgId={conditionData.belongId}
+                    conditions={conditionData.fields}
+                    resource={resource}
+                    scale={scale}
+                  />
+                )}
               </div>
             </Card>
           </Layout.Content>
-          {testModel && instance && instance.status < 100 && (
-            <Button
-              style={{ position: 'fixed', bottom: 0, zIndex: 100 }}
-              type="primary"
-              onClick={() => next(instance.id, instance.belongId, false)}>
-              下一步
-            </Button>
-          )}
           {instance && instance.status >= 100 && (
             <Button
               style={{ position: 'fixed', bottom: 0, zIndex: 100 }}

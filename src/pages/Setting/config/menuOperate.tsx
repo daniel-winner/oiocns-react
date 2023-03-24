@@ -1,13 +1,13 @@
-import React from 'react';
-import * as im from 'react-icons/im';
+import TeamIcon from '@/bizcomponents/GlobalComps/teamIcon';
 import userCtrl from '@/ts/controller/setting';
 import thingCtrl from '@/ts/controller/thing';
 import { ISpeciesItem, ITarget, TargetType } from '@/ts/core';
-import TeamIcon from '@/bizcomponents/GlobalComps/teamIcon';
+import { IAuthority } from '@/ts/core/target/authority/iauthority';
+import { IsSuperAdmin } from '@/utils/authority';
+import React from 'react';
+import * as im from 'react-icons/im';
 import { MenuItemType, OperateMenuType } from 'typings/globelType';
 import { GroupMenuType } from './menuType';
-import { IsSuperAdmin } from '@/utils/authority';
-import { IAuthority } from '@/ts/core/target/authority/iauthority';
 
 /** 加载分组菜单参数 */
 interface groupMenuParams {

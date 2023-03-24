@@ -1,30 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './index.less';
 import CardWidthTitle from '@/components/CardWidthTitle';
-
-const dataSource = [
-  {
-    title: '资产监管平台',
-    url: '/img/appLogo.png',
-    desc: '这是一段',
-    key: 1,
-  },
-  {
-    title: '资产管理应用',
-    url: '/img/appLogo.png',
-    desc: '应用的说明',
-    key: 4,
-  },
-];
+import appCtrl from '@/ts/controller/store/appCtrl';
+import { emitter } from '@/ts/core';
 interface SelfAppComType {
   props: []; //入口列表
 }
 const BannerCom: React.FC<SelfAppComType> = () => {
+  const [dataSource, setDataSource] = useState<any[]>([]);
+  useEffect(() => {
+    const id = appCtrl.subscribe((key) => {
+      setDataSource(appCtrl.caches);
+    });
+    return () => {
+      emitter.unsubscribe(id);
+    };
+  }, []);
   return (
-    <CardWidthTitle className="self-app" title={'我的应用'}>
+    <CardWidthTitle className="self-app" title={'常用应用'}>
       <div className="app-content">
-        {dataSource.map((item) => {
-          return <AppCard className="app-wrap" key={item.key} info={item} />;
+        {dataSource.map((item: any, index) => {
+          return <AppCard className="app-wrap" key={index} info={item} />;
         })}
       </div>
     </CardWidthTitle>

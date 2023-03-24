@@ -124,7 +124,7 @@ export type IdArraySpaceReq = {
 
 export type QueryDefineReq = {
   // 分类ID
-  speciesId: string;
+  speciesId?: string;
   // 空间ID
   spaceId: string;
   // 分页
@@ -307,19 +307,23 @@ export type DictItemModel = {
   dictId: string;
 };
 
+export type FlowDefineModel = {
+  id?: string;
+  // 类别Id
+  speciesId?: string;
+  // 空间Id
+  spaceId?: string;
+  // 状态
+  status?: number;
+};
+
 export type ThingModel = {
   // 唯一ID
-  id?: string;
-  // 名称
-  name: string;
-  // 编号
-  code: string;
-  // 链上ID
-  chainId: string;
-  // 创建组织/个人
+  id: string;
+  // 内容
+  data: string;
+  // 归属id
   belongId: string;
-  // 备注
-  remark: string;
 };
 
 export type SpeciesModel = {
@@ -889,6 +893,8 @@ export type CreateDefineReq = {
   public?: boolean;
   //数据源id
   sourceIds?: string;
+  //是否创建实体
+  isCreate: boolean;
 };
 
 export type FlowNode = {

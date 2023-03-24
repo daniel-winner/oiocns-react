@@ -87,16 +87,6 @@ const Matcher = (props: any, ref: any) => {
         );
         setTargetCompany(new BaseTarget(targetCompany as XTarget));
       }
-      // let speciesResult: ResultType<XSpeciesArray> = await kernel.querySpeciesById({
-      //   ids: [props.data.sourceSpeciesId, props.data.targetSpeciesId],
-      // });
-      // if (speciesResult.success && speciesResult.data.result) {
-      //   let speciess: XSpecies[] = speciesResult.data.result;
-      //   let sourceSpecies = speciess.find((item) => item.id == props.data.sourceSpeciesId);
-      //   setSourceSpecies(new SpeciesItem(sourceSpecies as XSpecies, undefined));
-      //   let targetSpecies = speciess.find((item) => item.id == props.data.targetSpeciesId);
-      //   setTargetSpecies(new SpeciesItem(targetSpecies as XSpecies, undefined));
-      // }
       setMatchAttrs(props.data.matchAttrs);
     }
   };
@@ -155,23 +145,10 @@ const Matcher = (props: any, ref: any) => {
         console.log('exist');
       } else {
         //查询源和目标的特性
-        let sourceAttrs: XAttribute[] =
-          (
-            await sourceSpecies.loadAttrs(sourceCompany?.id || '', true, true, {
-              offset: 0,
-              limit: 1000,
-              filter: '',
-            })
-          )?.result || [];
+        let sourceAttrs: XAttribute[] = await sourceSpecies.loadAttrs(false);
         setSourceAttrs(sourceAttrs);
-        let targetAttrs: XAttribute[] =
-          (
-            await targetSpecies.loadAttrs(targetCompany?.id || '', true, true, {
-              offset: 0,
-              limit: 1000,
-              filter: '',
-            })
-          ).result || [];
+        let targetAttrs: XAttribute[] = await targetSpecies.loadAttrs(false);
+
         setTargetAttrs(targetAttrs);
         //查询源和目标的字典
         let dictIds = [...sourceAttrs, ...targetAttrs]
@@ -179,13 +156,13 @@ const Matcher = (props: any, ref: any) => {
           .map((item) => item.dictId);
 
         let sourceDicts: IDict[] =
-          (await sourceSpecies.loadDictsEntity(sourceCompany?.id || '', true, true, {
+          (await sourceSpecies.loadDictsByPage(sourceCompany?.id || '', true, true, {
             offset: 0,
             limit: 1000,
             filter: '',
           })) || [];
         let targetDicts: IDict[] =
-          (await targetSpecies.loadDictsEntity(targetCompany?.id || '', true, true, {
+          (await targetSpecies.loadDictsByPage(targetCompany?.id || '', true, true, {
             offset: 0,
             limit: 1000,
             filter: '',
@@ -195,14 +172,7 @@ const Matcher = (props: any, ref: any) => {
           dictIds.includes(item.id),
         );
         for (let dict of usedSourceDicts) {
-          let dictItems: XDictItem[] =
-            (
-              await dict.loadItems(sourceCompany?.id || '', {
-                offset: 0,
-                limit: 1000,
-                filter: '',
-              })
-            ).result || [];
+          let dictItems: XDictItem[] = await dict.loadItems();
           dict.items = dictItems;
         }
         setSourceDicts(usedSourceDicts);
@@ -210,14 +180,8 @@ const Matcher = (props: any, ref: any) => {
           dictIds.includes(item.id),
         );
         for (let dict of usedTargetDicts) {
-          let dictItems: XDictItem[] =
-            (
-              await dict.loadItems(targetCompany?.id || '', {
-                offset: 0,
-                limit: 1000,
-                filter: '',
-              })
-            ).result || [];
+          let dictItems: XDictItem[] = await dict.loadItems();
+
           dict.items = dictItems;
         }
         setTargetDicts(usedTargetDicts);
@@ -297,14 +261,10 @@ const Matcher = (props: any, ref: any) => {
         // setMatchDicts(matchDicts);
       }
     } else if (sourceSpecies) {
-      let res = await sourceSpecies.loadAttrs(sourceCompany?.id || '', true, true, {
-        offset: 0,
-        limit: 1000,
-        filter: '',
-      });
-      setSourceAttrs(res.result || []);
+      let res = await sourceSpecies.loadAttrs(false);
+      setSourceAttrs(res);
       setMatchAttrs(
-        res.result?.map((attr: XAttribute) => {
+        res.map((attr: XAttribute) => {
           return {
             id: getUuid(),
             sourceAttr: attr.name,
@@ -321,11 +281,7 @@ const Matcher = (props: any, ref: any) => {
         }) || [],
       );
     } else if (targetSpecies) {
-      let res = await targetSpecies.loadAttrs(targetCompany?.id || '', true, true, {
-        offset: 0,
-        limit: 1000,
-        filter: '',
-      });
+      let res = await targetSpecies.loadAttrs(false);
       setTargetAttrs(res.result || []);
       setMatchAttrs(
         res.result?.map((attr: XAttribute) => {

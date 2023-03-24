@@ -19,7 +19,6 @@ const ChartDesign: React.FC<IProps> = (props) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [scale, setScale] = useState<number>(100);
   const [currentNode, setCurrentNode] = useState<NodeType>();
-
   useEffect(() => {
     setScale(props.scale ?? 100);
   }, [props]);

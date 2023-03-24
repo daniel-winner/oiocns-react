@@ -1,5 +1,5 @@
 import todoCtrl from '@/ts/controller/todo/todoCtrl';
-import { emitter } from '@/ts/core';
+import { emitter, WorkType } from '@/ts/core';
 import { SettingOutlined } from '@ant-design/icons';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -21,8 +21,8 @@ const useMenuUpdate = (): [
   const [key, setKey] = useState<string>('');
   const [menus, setMenu] = useState<TabItemType[]>([]);
   const [selectMenu, setSelectMenu] = useState<MenuItemType>({
-    key: 'work',
-    label: '办事',
+    key: 'todo',
+    label: '待办',
     itemType: 'group',
     icon: <SettingOutlined />,
     children: [],
@@ -42,11 +42,12 @@ const useMenuUpdate = (): [
           children: [
             ...(await operate.loadPlatformTodoMenu()),
             {
-              key: '事项',
+              key: 'todoWork',
               label: '事项',
-              itemType: 'group',
+              itemType: WorkType.WorkTodo,
               icon: <SettingOutlined />,
-              children: await operate.loadThingMenus('todo'),
+              count: (await todoCtrl.loadWorkTodo()).length,
+              children: [],
             },
           ],
         },

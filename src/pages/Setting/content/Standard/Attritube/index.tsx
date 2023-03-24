@@ -62,7 +62,7 @@ const Attritube = ({
   }, [recursionSpecies]);
 
   const loadAttrs = async (page: PageRequest) => {
-    return await current!.loadAttrs(
+    return await current!.loadAttrsByPage(
       userCtrl.space.id,
       recursionOrg,
       recursionSpecies,

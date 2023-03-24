@@ -1,6 +1,7 @@
+import { XDictItem } from '@/ts/base/schema';
 import { kernel, parseAvatar, schema } from '../../base';
-import { DictItemModel, PageRequest, DictModel, TargetShare } from '../../base/model';
-import { INullDict, IDict } from './idict';
+import { DictItemModel, PageRequest, TargetShare } from '../../base/model';
+import { IDict } from './idict';
 /**
  * 分类系统项实现
  */
@@ -9,14 +10,35 @@ export class Dict implements IDict {
   name: string;
   target: schema.XDict;
   belongInfo: TargetShare;
+  curSpaceId: string;
+  items?: XDictItem[];
 
-  constructor(target: schema.XDict) {
+  constructor(target: schema.XDict, curSpaceId: string) {
     this.target = target;
     this.id = target.id;
     this.name = target.name;
+    this.curSpaceId = curSpaceId;
     this.belongInfo = { name: '奥集能平台', typeName: '平台' };
   }
-  async loadItems(spaceId: string, page: PageRequest): Promise<schema.XDictItemArray> {
+  async loadItems(reload: boolean = false): Promise<XDictItem[]> {
+    if (this.items == undefined || reload) {
+      const res = await kernel.queryDictItems({
+        id: this.target.id,
+        spaceId: this.curSpaceId,
+        page: {
+          offset: 0,
+          limit: 1000,
+          filter: '',
+        },
+      });
+      this.items = res.data.result || [];
+    }
+    return this.items;
+  }
+  async loadItemsByPage(
+    spaceId: string,
+    page: PageRequest,
+  ): Promise<schema.XDictItemArray> {
     const res = await kernel.queryDictItems({
       id: this.target.id,
       spaceId: spaceId,
@@ -46,50 +68,31 @@ export class Dict implements IDict {
     return this;
   }
 
-  async create(data: Omit<DictModel, 'id' | 'parentId'>): Promise<INullDict> {
-    const res = await kernel.createDict({
-      ...data,
-      id: undefined,
-    });
-    if (res.success) {
-      const newItem = new Dict(res.data);
-      return newItem;
-    }
-    return;
-  }
-  async update(data: Omit<DictModel, 'id' | 'parentId' | 'code'>): Promise<IDict> {
-    const res = await kernel.updateDict({
-      ...data,
-      id: this.id,
-      code: this.target.code,
-    });
-    if (res.success) {
-      this.target.name = data.name;
-      this.target.public = data.public;
-      this.target.belongId = data.belongId;
-      this.target.remark = data.remark;
-    }
-    return this;
-  }
-  async delete(): Promise<boolean> {
-    const res = await kernel.deleteDict({
-      id: this.id,
-      typeName: '',
-    });
-    return res.success;
-  }
   async createItem(data: Omit<DictItemModel, 'id' | 'dictId'>): Promise<boolean> {
     const res = await kernel.createDictItem({
       ...data,
       id: undefined,
       dictId: this.target.id,
     });
+    if (res.success) {
+      if (this.items) {
+        this.items.push(res.data);
+      }
+    }
     return res.success;
   }
   async updateItem(data: DictItemModel): Promise<boolean> {
     const res = await kernel.updateDictItem({
       ...data,
     });
+    if (this.items && res.success) {
+      this.items = this.items.map((item: any) => {
+        if (item.id == res.data.id) {
+          return res.data;
+        }
+        return item;
+      });
+    }
     return res.success;
   }
   async deleteItem(id: string): Promise<boolean> {
@@ -97,6 +100,9 @@ export class Dict implements IDict {
       id: id,
       typeName: '',
     });
+    if (this.items && res.success) {
+      this.items = this.items.filter((item: any) => item.id != id);
+    }
     return res.success;
   }
 }

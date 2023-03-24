@@ -77,62 +77,8 @@ const FieldInfo: React.FC<IProps> = ({
         },
         colProps: { span: 24 },
       },
-
-      // {
-      //   title: '选择管理权限',
-      //   dataIndex: 'authId',
-      //   valueType: 'treeSelect',
-      //   // formItemProps: { rules: [{ required: true, message: '管理权限为必填项' }] },
-      //   request: async () => {
-      //     const data = await userCtrl.company.loadAuthorityTree(false);
-      //     return data ? [data] : [];
-      //   },
-      //   fieldProps: {
-      //     fieldNames: { label: 'name', value: 'id' },
-      //     showSearch: true,
-      //     filterTreeNode: true,
-      //     treeNodeFilterProp: 'name',
-      //     treeDefaultExpandAll: true,
-      //   },
-      // },
-      // {
-      //   title: '向下级组织公开',
-      //   dataIndex: 'public',
-      //   valueType: 'select',
-      //   fieldProps: {
-      //     options: [
-      //       {
-      //         value: true,
-      //         label: '公开',
-      //       },
-      //       {
-      //         value: false,
-      //         label: '不公开',
-      //       },
-      //     ],
-      //   },
-      //   // formItemProps: {
-      //   //   rules: [{ required: true, message: '是否公开为必填项' }],
-      //   // },
-      // },
     ];
-    // if (currentFormValue.operateOrgId != undefined) {
-    //   columns.push({
-    //     title: '当前操作组织',
-    //     dataIndex: 'operateOrgId',
-    //     readonly: true,
-    //     valueType: 'treeSelect',
-    //     request: async () => {
-    //       return await userCtrl.getTeamTree();
-    //     },
-    //     fieldProps: {
-    //       fieldNames: { label: 'teamName', value: 'id', children: 'subTeam' },
-    //       showSearch: true,
-    //       filterTreeNode: true,
-    //       treeNodeFilterProp: 'teamName',
-    //     },
-    //   });
-    // }
+
     columns.push({
       title: '备注',
       dataIndex: 'remark',
@@ -148,31 +94,6 @@ const FieldInfo: React.FC<IProps> = ({
 
   return (
     <div className={cls['contentMes']}>
-      {/* <ProForm
-        layout="horizontal"
-        onValuesChange={async () => {
-          const currentValue = await form.getFieldsValue();
-          onChange(currentValue);
-        }}
-        form={form}
-        onFinish={async (e) => {
-          nextStep(e);
-        }}>
-        <ProFormText
-          name="name"
-          label="办事名称"
-          placeholder="输入办事名称"
-          rules={[{ required: true, message: '请输入办事名称!' }]}
-        />
-        <ProFormSelect
-          name="belongId"
-          label="选择制定组织"
-          placeholder="选择制定组织"
-          rules={[{ required: true, message: '组织为必填项!' }]}
-        />
-        <ProFormTextArea name="remark" label="备注信息" placeholder="输入备注信息" />
-      </ProForm> */}
-
       <SchemaForm
         formRef={formRef}
         form={form}

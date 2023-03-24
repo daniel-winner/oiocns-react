@@ -70,7 +70,7 @@ const selectAppTemplate: React.FC<Iprops> = (props) => {
   const loadOperations = async (page: PageRequest) => {
     return (
       await kernel.querySpeciesOperation({
-        id: '27466605935445025',
+        id: '',
         spaceId: userCtrl.space.id,
         filterAuth: false,
         recursionOrg: true,

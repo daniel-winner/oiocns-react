@@ -20,8 +20,17 @@ class AppController extends Emitter {
   private _current: IProduct | undefined;
   /** 市场操作对象 */
   private _target: ISpace;
-  private _caches: string[] = [];
+  private _caches: any[] = [];
+  private _commonAppMap: any = {};
   private _customMenus: TreeType[] = [];
+
+  get commonAppMap(): any {
+    return this._commonAppMap;
+  }
+
+  get caches(): any[] {
+    return this._caches;
+  }
 
   get products(): IProduct[] {
     return this._target?.ownProducts ?? [];
@@ -34,7 +43,7 @@ class AppController extends Emitter {
   get alwaysUseApps(): IProduct[] {
     const result: IProduct[] = [];
     this._caches.forEach((a) => {
-      let prod = this._target.ownProducts.find((p) => p.id == a);
+      let prod = this._target.ownProducts.find((p) => p.id == a.key);
       if (prod) {
         result.push(prod);
       }
@@ -52,16 +61,12 @@ class AppController extends Emitter {
     emitter.subscribePart([DomainTypes.User, DomainTypes.Company], async () => {
       this._target = userCtrl.space;
       await this._target.getOwnProducts(true);
-      this.changCallback();
-
       /** 订阅常用应用 */
-      kernel.anystore.subscribed(STORE_RECENTLY_APPS, 'user', (data: string[]) => {
-        if (data.length > 0) {
-          this._caches = data;
-        } else {
-          this._caches = [];
-        }
-        this.changCallback();
+      kernel.anystore.subscribed(STORE_RECENTLY_APPS, 'user', (map: any) => {
+        this._commonAppMap = map;
+        this._caches = map[userCtrl.space.id] || [];
+        console.log('_caches', this._caches);
+        this.changCallbackPart(STORE_RECENTLY_APPS);
       });
 
       /* 获取 历史缓存的 自定义目录 */
@@ -73,6 +78,7 @@ class AppController extends Emitter {
         }
         this.changCallbackPart(STORE_USER_MENU);
       });
+      this.changCallback();
     });
   }
 
@@ -81,21 +87,26 @@ class AppController extends Emitter {
    * @param prod 应用
    * @param cache 是否添加至常用应用
    */
-  public setCurProduct(prod: IProduct, cache?: boolean): void {
+  public setCurProduct(prod: IProduct): void {
     this._current = prod;
-    if (cache) {
-      this._caches = this._caches.filter((i) => i != prod.id);
-      this._caches.unshift(prod.id);
-      this._caches = this._caches.slice(0, 7);
-      kernel.anystore.set(
-        STORE_RECENTLY_APPS,
-        {
-          operation: 'replaceAll',
-          data: this._caches,
-        },
-        'user',
-      );
+  }
+
+  public async setCommon(app: any, setCommon: boolean = true) {
+    this._caches = this._caches.filter((i) => i.key != app.key);
+    if (setCommon) {
+      this._caches.unshift(app);
     }
+    this._caches = this._caches.slice(0, 10);
+    this.commonAppMap[userCtrl.space.id] = this._caches;
+    this.changCallbackPart(STORE_RECENTLY_APPS);
+    await kernel.anystore.set(
+      STORE_RECENTLY_APPS,
+      {
+        operation: 'replaceAll',
+        data: this.commonAppMap,
+      },
+      'user',
+    );
   }
 
   /**

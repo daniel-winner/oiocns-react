@@ -39,6 +39,7 @@ const SettingStandrad: React.FC<IProps> = ({ current, target }: IProps) => {
     createTime: '',
     updateTime: '',
     target: undefined,
+    isCreate: true,
   });
   const [showAddDict, setShowAddDict] = useState<boolean>(true);
   const [recursionOrg, setRecursionOrg] = useState<boolean>(true);
@@ -119,6 +120,7 @@ const SettingStandrad: React.FC<IProps> = ({ current, target }: IProps) => {
                     createTime: '',
                     updateTime: '',
                     target: undefined,
+                    isCreate: true,
                   });
                 }}>
                 {'新增办事'}

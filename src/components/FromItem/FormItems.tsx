@@ -1,12 +1,3 @@
-import React from 'react';
-import {
-  ProFormCheckbox,
-  ProFormDigit,
-  ProFormRadio,
-  ProFormSelect,
-  ProFormText,
-  ProFormUploadButton,
-} from '@ant-design/pro-form';
 import {
   ProFormDatePicker,
   ProFormDateRangePicker,
@@ -15,12 +6,22 @@ import {
   ProFormMoney,
   ProFormTreeSelect,
 } from '@ant-design/pro-components';
-import ProFormAuth from './../render/widgets/ProFormAuth';
-import ProFormDict from './../render/widgets/ProFormDict';
-import ProFormPerson from './../render/widgets/ProFormPerson';
-import ProFormDept from './../render/widgets/ProFormDept';
-import ProFormGroup from './../render/widgets/ProFormGroup';
+import {
+  ProFormCheckbox,
+  ProFormDigit,
+  ProFormRadio,
+  ProFormSelect,
+  ProFormText,
+  ProFormUploadButton,
+} from '@ant-design/pro-form';
 import { Rule } from 'antd/es/form';
+import React from 'react';
+import ProFormAuth from './widgets/ProFormAuth';
+import ProFormDept from './widgets/ProFormDept';
+import ProFormDict from './widgets/ProFormDict';
+import ProFormGroup from './widgets/ProFormGroup';
+import ProFormPerson from './widgets/ProFormPerson';
+import ProFormIdentity from './widgets/ProFormIdentity';
 
 /**
  * 表单项渲染
@@ -216,6 +217,16 @@ const OioFormItem = (props: any) => {
     case 'auth':
       return (
         <ProFormAuth
+          name={item.attrId}
+          label={rule.title}
+          rules={rules}
+          tooltip={rule.description}
+          labelAlign="right"
+        />
+      );
+    case 'identity':
+      return (
+        <ProFormIdentity
           name={item.attrId}
           label={rule.title}
           rules={rules}

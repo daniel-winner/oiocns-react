@@ -44,6 +44,7 @@ interface IProps {
   setTabKey?: (tabKey: number) => void;
   setThingId?: (thingId: string) => void;
   scrolling?: any;
+  showRemove?: Function;
 }
 
 /**
@@ -76,45 +77,76 @@ const Thing: React.FC<IProps> = (props: IProps) => {
 
   const loadAttrs = async (speciesArray: ISpeciesItem[]) => {
     let parentHeaders: any[] = [];
-    let speciesIds = speciesArray.map((item) => item.id);
-    //带属性的分类
-    let instances = storeCtrl.checkedSpeciesList.filter((item: ISpeciesItem) =>
-      speciesIds.includes(item.id),
-    );
+    for (let species of speciesArray) {
+      await species.loadAttrs(false);
+    }
     //属性set
     let attrArray: XAttribute[] = [];
-    for (let instance of instances) {
-      for (let attr of instance.attrs || []) {
+    for (let species of speciesArray) {
+      for (let attr of species.attrs || []) {
         if (!attrArray.map((item) => item.id).includes(attr.id)) {
           attrArray.push(attr);
         }
       }
     }
 
-    let sortedSpecies = getSortedList(instances, [], false);
+    let sortedSpecies = getSortedList(speciesArray, [], false);
     for (let species of sortedSpecies) {
       if (attrArray.map((attr: XAttribute) => attr.speciesId).includes(species.id)) {
         let attrs =
           attrArray?.filter((attr: XAttribute) => attr.speciesId == species.id) || [];
-        parentHeaders.push({
-          caption: attrs[0].species?.name || species.name,
-          children: attrs,
-        });
+        if (species.name == '道') {
+          parentHeaders = [...parentHeaders, ...attrs];
+        } else {
+          parentHeaders.push({
+            caption: attrs[0].species?.name || species.name,
+            children: attrs,
+          });
+        }
       }
     }
-
     setThingAttrs(parentHeaders);
   };
 
   useEffect(() => {
-    if (storeCtrl.checkedSpeciesList.length > 0) {
-      if (props.checkedList && props.checkedList.length > 0) {
-        loadAttrs(props.checkedList.map((item) => item.item));
-      } else if (props.current && userCtrl.space.id) {
-        loadAttrs([props.current]);
+    if (props.checkedList && props.checkedList.length > 0) {
+      loadAttrs(props.checkedList.map((item) => item.item));
+    } else if (props.current && userCtrl.space.id) {
+      loadAttrs([props.current]);
+    }
+  }, [props.current, props.checkedList]);
+
+  const getColumns = (records: any[]) => {
+    let columns = [];
+    for (let record of records) {
+      if (record.caption) {
+        columns.push(
+          <Column key={record.caption} caption={record.caption}>
+            {record.children.map((attr: XAttribute) =>
+              getColumn(
+                attr.id,
+                attr.name,
+                attr.valueType,
+                attr.belongId ? `S${attr.speciesId}.T${attr.id}` : attr.code,
+                attr.dict?.dictItems,
+              ),
+            )}
+          </Column>,
+        );
+      } else {
+        columns.push(
+          getColumn(
+            record.id,
+            record.name,
+            record.valueType,
+            record.belongId ? `S${record.speciesId}.T${record.id}` : record.code,
+            record.dict?.dictItems,
+          ),
+        );
       }
     }
-  }, [props.current, props.checkedList, storeCtrl.checkedSpeciesList]);
+    return columns;
+  };
 
   const getColumn = (
     id: string,
@@ -273,6 +305,14 @@ const Thing: React.FC<IProps> = (props: IProps) => {
         onSelectionChanged={(e) => {
           props.onSelectionChanged?.call(this, e.selectedRowsData);
         }}
+        onRowDblClick={(e) => {
+          if (props.setThingId) {
+            props.setThingId(e.key);
+          }
+          if (props.setTabKey) {
+            props.setTabKey(1);
+          }
+        }}
         columnResizingMode={'widget'}
         height={props.height || 'calc(100vh - 175px)'}
         width="100%"
@@ -323,42 +363,25 @@ const Thing: React.FC<IProps> = (props: IProps) => {
           <Item name="columnChooserButton" locateInMenu="auto" location="after" />
         </Toolbar>
         <SearchPanel visible={true} highlightCaseSensitive={true} />
-        {thingAttrs.map((parentHeader: any) => (
-          <Column key={parentHeader.caption} caption={parentHeader.caption}>
-            {parentHeader.children.map((attr: XAttribute) =>
-              getColumn(
-                attr.id,
-                attr.name,
-                attr.valueType,
-                attr.belongId ? `S${attr.speciesId}.T${attr.id}` : attr.code,
-                attr.dict?.dictItems,
-              ),
-            )}
-          </Column>
-        ))}
-        <Column type="buttons" width={((props.buttonList?.length || 0) + 2) * 40}>
+        {getColumns(thingAttrs)}
+        <Column
+          type="buttons"
+          width={((props.buttonList?.length || 0) + 1) * 40}
+          visible={props.showRemove != undefined}>
           <Button
-            hint="信息卡片"
-            icon="paste"
+            hint="删除"
+            icon="remove"
+            visible={props.showRemove != undefined}
             onClick={(e: any) => {
-              if (props.setThingId) {
-                props.setThingId(e.row.key);
-              }
-              if (props.setTabKey) {
-                props.setTabKey(1);
-              }
+              props.showRemove?.call(this, e.row.data);
             }}
           />
           <Button
-            hint="归档记录"
-            icon="bulletlist"
+            hint="删除"
+            icon="remove"
+            visible={props.showRemove != undefined}
             onClick={(e: any) => {
-              if (props.setThingId) {
-                props.setThingId(e.row.key);
-              }
-              if (props.setTabKey) {
-                props.setTabKey(2);
-              }
+              props.showRemove?.call(this, e.row.data);
             }}
           />
           {props.buttonList}

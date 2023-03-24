@@ -22,7 +22,6 @@ interface IProps {
 }
 const SettingFlow: React.FC<IProps> = ({
   current,
-  target,
   modalType,
   flowDesign,
   curTabKey,
